@@ -593,6 +593,10 @@
       <button class="filter-btn" onclick="filtrar('B',this)">Grupo B</button>
       <button class="filter-btn" onclick="filtrar('C',this)">Grupo C</button>
       <button class="filter-btn" onclick="filtrar('D',this)">Grupo D</button>
+      <button class="filter-btn" onclick="filtrar('E',this)">Grupo E</button>
+      <button class="filter-btn" onclick="filtrar('F',this)">Grupo F</button>
+      <button class="filter-btn" onclick="filtrar('G',this)">Grupo G</button>
+      <button class="filter-btn" onclick="filtrar('H',this)">Grupo H</button>
       <button class="filter-btn" onclick="filtrar('Eliminatorias',this)">Eliminatorias</button>
     </div>
     <div id="fixture-list"><div class="empty">Conectá tu Apps Script para ver el fixture</div></div>
@@ -793,12 +797,30 @@ async function cargarFixture() {
 function formatFecha(fecha) {
   if (!fecha) return '';
   // Si viene en formato ISO (2026-06-11T03:00:00.000Z)
-  if (fecha.includes('T')) {
+  if (typeof fecha === 'string' && fecha.includes('T')) {
     const d = new Date(fecha);
     return d.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'America/Argentina/Buenos_Aires' });
   }
+  // Si viene como Date object de Google Sheets
+  if (fecha instanceof Date) {
+    return fecha.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' });
+  }
   // Si ya viene en formato dd/MM/yyyy lo devuelve igual
-  return fecha;
+  return String(fecha).split('T')[0].replace(/-/g, '/') || fecha;
+}
+
+function formatHora(hora) {
+  if (!hora) return '';
+  // Si viene como Date object o ISO, extraer solo HH:MM
+  if (hora instanceof Date) {
+    return hora.toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit', timeZone:'America/Argentina/Buenos_Aires' });
+  }
+  if (typeof hora === 'string' && hora.includes('T')) {
+    const d = new Date(hora);
+    return d.toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit', timeZone:'America/Argentina/Buenos_Aires' });
+  }
+  // Si ya viene como HH:MM
+  return String(hora).substring(0, 5);
 }
 
 function filtrar(grupo, btn) {
@@ -829,7 +851,7 @@ function renderFixture(partidos) {
           ? `<div class="score-pill">${m.gol_l ?? '—'}</div>
              <span class="score-sep">:</span>
              <div class="score-pill">${m.gol_v ?? '—'}</div>`
-          : `<div class="match-time">${formatFecha(m.fecha)}<br/>${m.hora||''}</div>`}
+          : `<div class="match-time">${formatFecha(m.fecha)}<br/>${formatHora(m.hora)}</div>`}
         ${live ? '<span class="badge badge-live" style="margin-left:4px;font-size:9px">LIVE</span>' : ''}
       </div>
       <div class="match-team right">${m.visitante}</div>
