@@ -408,7 +408,7 @@ function switchTab(tab){
 <header class="hero">
   <span class="hero-ball">⚽</span>
   <div class="hero-badge">🏆 Mundial 2026 · Prode Croma</div>
-  <div class="hero-title">PRODE<br/><em>MUNDIAL</em><br/>2026</div>
+  <div class="hero-title">PRODE<br/><em>CROMA</em><br/>2026</div>
   <div class="hero-flags">🇺🇸 🇨🇦 🇲🇽</div>
   <div class="hero-sub">11 de junio · 19 de julio de 2026</div>
   <div class="hero-btns">
@@ -712,9 +712,9 @@ function renderFixture(partidos){
     const fl=flag(m.local), fv=flag(m.visitante);
     html+=`<div class="match-card">
       <div class="match-inner">
-        <div class="match-team-wrap left">
-          <div class="match-team-name">${m.local}</div>
-          <div class="match-flag">${fl}</div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:1">
+          <div style="font-size:14px;font-weight:600;text-align:right">${m.local}</div>
+          <div style="font-size:22px;flex-shrink:0">${fl}</div>
         </div>
         <div class="match-center">
           ${jugado||live
@@ -727,9 +727,9 @@ function renderFixture(partidos){
             : `<div class="match-date">${formatFecha(m.fecha)}</div>
                <div class="match-time">${formatHora(m.hora)} hs</div>`}
         </div>
-        <div class="match-team-wrap right">
-          <div class="match-flag">${fv}</div>
-          <div class="match-team-name">${m.visitante}</div>
+        <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;flex:1">
+          <div style="font-size:22px;flex-shrink:0">${fv}</div>
+          <div style="font-size:14px;font-weight:600;text-align:left">${m.visitante}</div>
         </div>
       </div>
     </div>`;
