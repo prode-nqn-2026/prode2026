@@ -504,6 +504,26 @@
 </head>
 <body>
 
+  <!-- FUNCIONES TEMPRANAS -->
+  <script>
+    function abrirModal(id) {
+      const el = document.getElementById('modal-' + id);
+      if (el) el.classList.add('open');
+    }
+    function cerrarModal(id) {
+      const el = document.getElementById('modal-' + id);
+      if (el) el.classList.remove('open');
+    }
+    function switchTab(tab) {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      const btn = document.querySelector(".nav-tab[onclick=\"switchTab('"+tab+"')\""]");
+      if (btn) btn.classList.add('active');
+      const view = document.getElementById('view-' + tab);
+      if (view) view.classList.add('active');
+    }
+  </script>
+
   <!-- HERO -->
   <header class="hero">
     <div class="hero-bg"></div>
@@ -934,14 +954,7 @@ async function registrar() {
 }
 
 // ── MODAL ─────────────────────────────────────────────────────
-function abrirModal(id) {
-  const el = document.getElementById('modal-' + id);
-  if (el) el.classList.add('open');
-}
-function cerrarModal(id) {
-  const el = document.getElementById('modal-' + id);
-  if (el) el.classList.remove('open');
-}
+// abrirModal/cerrarModal definidas arriba
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
