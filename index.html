@@ -652,7 +652,9 @@ const AVATAR_COLORS = [
   {bg:'#2e2a0a',fg:'#FFE060'},{bg:'#0a1a2e',fg:'#60AFFF'}
 ];
 
-let SCRIPT_URL = localStorage.getItem('prode_url') || '';
+// ⬇️ PEGÁ ACÁ TU URL DEL APPS SCRIPT (entre las comillas)
+const SCRIPT_URL_FIJA = 'https://script.google.com/macros/s/AKfycbwpCjcP7s8zRMAEMEfKxUVLTBn5B5gzBQ_IqFtB650mLxK_TBvfIo740I6NUUNMbGOs/exec';
+let SCRIPT_URL = SCRIPT_URL_FIJA !== 'TU_URL_ACA' ? SCRIPT_URL_FIJA : (localStorage.getItem('prode_url') || '');
 let currentUser = null;
 let fixtureData  = [];
 let pronLocales  = {}; // { partido_id: {gl, gv} }
