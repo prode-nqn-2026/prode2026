@@ -934,10 +934,18 @@ async function registrar() {
 }
 
 // ── MODAL ─────────────────────────────────────────────────────
-function abrirModal(id) { document.getElementById('modal-' + id).classList.add('open'); }
-function cerrarModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+function abrirModal(id) {
+  const el = document.getElementById('modal-' + id);
+  if (el) el.classList.add('open');
+}
+function cerrarModal(id) {
+  const el = document.getElementById('modal-' + id);
+  if (el) el.classList.remove('open');
+}
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+  });
 });
 
 // ── TOAST ─────────────────────────────────────────────────────
