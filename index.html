@@ -713,8 +713,8 @@ function renderFixture(partidos){
     html+=`<div class="match-card">
       <div class="match-inner">
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:1">
-          <div style="font-size:14px;font-weight:600;text-align:right">${m.local}</div>
           <div style="font-size:22px;flex-shrink:0">${fl}</div>
+          <div style="font-size:14px;font-weight:600;text-align:right">${m.local}</div>
         </div>
         <div class="match-center">
           ${jugado||live
@@ -728,8 +728,8 @@ function renderFixture(partidos){
                <div class="match-time">${formatHora(m.hora)} hs</div>`}
         </div>
         <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;flex:1">
-          <div style="font-size:22px;flex-shrink:0">${fv}</div>
           <div style="font-size:14px;font-weight:600;text-align:left">${m.visitante}</div>
+          <div style="font-size:22px;flex-shrink:0">${fv}</div>
         </div>
       </div>
     </div>`;
