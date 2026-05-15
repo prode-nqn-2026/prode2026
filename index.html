@@ -560,11 +560,11 @@ function switchTab(tab){
       <span class="login-icon">⚽</span>
       <div class="login-title">TUS PRONÓSTICOS</div>
       <div class="login-sub">Ingresá tu nombre y PIN para<br/>cargar o ver tus predicciones</div>
-      <div class="login-fields">
-        <input class="input" type="text" id="login-nombre" placeholder="Tu nombre..." autocomplete="username"/>
-        <input class="input" type="password" id="login-pin" placeholder="PIN (4 números)" maxlength="4" autocomplete="current-password"/>
-        <button class="btn btn-primary" onclick="loginUser()" style="width:100%;justify-content:center">Entrar →</button>
-      </div>
+      <form name="prode-login" onsubmit="loginUser();return false;" class="login-fields" autocomplete="on">
+        <input class="input" type="text" id="login-nombre" name="username" placeholder="Tu nombre..." autocomplete="username"/>
+        <input class="input" type="password" id="login-pin" name="password" placeholder="PIN (4 números)" maxlength="4" autocomplete="current-password"/>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Entrar →</button>
+      </form>
     </div>
   </div>
   <div id="pron-area" style="display:none">
@@ -642,14 +642,16 @@ function switchTab(tab){
 <div class="overlay" id="modal-login">
   <div class="modal">
     <div class="modal-title">INICIAR SESIÓN <button class="modal-close" onclick="cerrarModal('login')">×</button></div>
-    <div class="field"><label>Nombre</label><input type="text" id="quick-nombre" placeholder="Tu nombre..." autocomplete="username"/></div>
-    <div class="field"><label>PIN de 4 números</label><input type="password" id="quick-pin" placeholder="1234" maxlength="4" autocomplete="current-password"/></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="cerrarModal('login')">Cancelar</button>
-      <button class="btn btn-primary" id="btn-login-rapido" onclick="loginRapido()">Entrar →</button>
-    </div>
+    <form name="prode-login-rapido" onsubmit="loginRapido();return false;" autocomplete="on">
+      <div class="field"><label>Nombre</label><input type="text" id="quick-nombre" name="username" placeholder="Tu nombre..." autocomplete="username"/></div>
+      <div class="field"><label>PIN de 4 números</label><input type="password" id="quick-pin" name="password" placeholder="1234" maxlength="4" autocomplete="current-password"/></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="cerrarModal('login')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btn-login-rapido">Entrar →</button>
+      </div>
+    </form>
     <div class="modal-note">¿Aún no te registraste? <span style="color:var(--green);cursor:pointer" onclick="cerrarModal('login');abrirModal('registro')">Unirme al prode →</span></div>
-  </form></div>
+  </div>
 </div>
 
 <!-- MODAL EDITAR PERFIL -->
@@ -879,6 +881,41 @@ document.addEventListener('DOMContentLoaded', function(){
   const cachedFixture = cacheGet('fixture');
   if (cachedRanking) renderRankingData(cachedRanking);
   if (cachedFixture) { fixtureData = cachedFixture; renderFixture(fixtureData); }
+
+  // Restaurar sesión guardada
+  const savedUser = localStorage.getItem('prode_user');
+  const savedPin  = localStorage.getItem('prode_pin');
+  if (savedUser && savedPin) {
+    document.getElementById('login-nombre').value = savedUser;
+    document.getElementById('login-pin').value    = savedPin;
+    // Verificar que el PIN siga siendo válido y restaurar sesión
+    apiGet('verificarPin', '&nombre=' + encodeURIComponent(savedUser) + '&pin=' + encodeURIComponent(savedPin))
+      .then(v => {
+        if (v?.ok) {
+          currentUser = savedUser;
+          document.getElementById('login-area').style.display  = 'none';
+          document.getElementById('pron-area').style.display   = 'block';
+          document.getElementById('pron-title').textContent    = savedUser.toUpperCase();
+          document.getElementById('perfil-nombre').textContent = savedUser;
+          cargarFotoPerfil(savedUser);
+          actualizarHeroBtns();
+          // Cargar pronósticos guardados
+          apiGet('pronosticos', '&nombre=' + encodeURIComponent(savedUser)).then(data => {
+            if (data?.ok) {
+              pronGuardados = {};
+              (data.pronosticos || []).forEach(p => {
+                pronGuardados[p.partido_id] = { gl: p.gol_l, gv: p.gol_v };
+                pronLocales[p.partido_id]   = { gl: p.gol_l, gv: p.gol_v };
+              });
+            }
+          });
+        } else {
+          // PIN inválido — limpiar sesión
+          localStorage.removeItem('prode_user');
+          localStorage.removeItem('prode_pin');
+        }
+      });
+  }
 
   // Cargar todo en paralelo
   if (SCRIPT_URL) {
@@ -1164,6 +1201,9 @@ async function loginUser(){
   const v=await apiGet('verificarPin','&nombre='+encodeURIComponent(n)+'&pin='+encodeURIComponent(pin));
   if(!v?.ok){ toast(v?.mensaje||'Nombre o PIN incorrecto ❌',true); return; }
   currentUser=n;
+  // Guardar sesión en localStorage
+  localStorage.setItem('prode_user', n);
+  localStorage.setItem('prode_pin',  pin);
   document.getElementById('login-area').style.display='none';
   document.getElementById('pron-area').style.display='block';
   document.getElementById('pron-title').textContent=n.toUpperCase();
@@ -1198,6 +1238,9 @@ function logoutUser(){
   document.getElementById('save-bar').classList.remove('on');
   limpiarFoto();
   actualizarHeroBtns();
+  // Limpiar sesión guardada
+  localStorage.removeItem('prode_user');
+  localStorage.removeItem('prode_pin');
 }
 
 function renderPron(){
