@@ -502,6 +502,7 @@ function switchTab(tab){
     <button class="nav-tab" data-tab="pronosticos" data-auth="true" onclick="switchTab('pronosticos')">📝 Pronósticos</button>
     <button class="nav-tab" data-tab="estadisticas" data-auth="true" onclick="switchTab('estadisticas')">📊 Estadísticas</button>
     <button class="nav-tab" data-tab="reglas" onclick="switchTab('reglas')">📋 Reglas</button>
+    <button class="nav-tab" data-tab="tyc" onclick="switchTab('tyc')">📄 Términos</button>
   </nav>
 </div>
 
@@ -870,6 +871,147 @@ function switchTab(tab){
       · Pronosticaste <strong style="color:var(--green)">2-1</strong> → <strong style="color:var(--green)">3 puntos</strong> (exacto)<br/>
       · Pronosticaste <strong style="color:var(--gold)">1-0</strong> → <strong style="color:var(--gold)">1 punto</strong> (acertaste que ganaba Argentina)<br/>
       · Pronosticaste <strong style="color:var(--red)">0-1</strong> → <strong style="color:var(--red)">0 puntos</strong> (error)
+    </div>
+  </div>
+</section>
+
+<!-- TÉRMINOS Y CONDICIONES -->
+<section id="view-tyc" class="view">
+  <div class="section-hdr">
+    <div class="section-title">TÉRMINOS Y CONDICIONES</div>
+  </div>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:16px">Prode Neuquén 2026 · Última actualización: Mayo 2026</div>
+
+  <!-- PARTICIPACIÓN -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <span style="font-size:20px">👥</span>
+      <div style="font-family:var(--font-d);font-size:18px;letter-spacing:.5px">Participación</div>
+    </div>
+    <div style="padding:8px 0;">
+      <div class="regla-row">
+        <span class="regla-icon">💵</span>
+        <div>
+          <div class="regla-titulo">Inscripción</div>
+          <div class="regla-desc">La inscripción tiene un costo de $30.000 y es obligatoria para participar. El pago debe realizarse antes de cargar pronósticos.</div>
+        </div>
+      </div>
+      <div class="regla-row">
+        <span class="regla-icon">👤</span>
+        <div>
+          <div class="regla-titulo">Un usuario por persona</div>
+          <div class="regla-desc">Cada participante puede registrar un solo usuario. La creación de múltiples cuentas resulta en descalificación inmediata.</div>
+        </div>
+      </div>
+      <div class="regla-row" style="border-bottom:none">
+        <span class="regla-icon">✅</span>
+        <div>
+          <div class="regla-titulo">Aceptación de términos</div>
+          <div class="regla-desc">Al registrarse, el participante declara haber leído y aceptado estos términos y condiciones en su totalidad.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRONÓSTICOS -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <span style="font-size:20px">📝</span>
+      <div style="font-family:var(--font-d);font-size:18px;letter-spacing:.5px">Pronósticos</div>
+    </div>
+    <div style="padding:8px 0;">
+      <div class="regla-row">
+        <span class="regla-icon">⏰</span>
+        <div>
+          <div class="regla-titulo">Cierre automático</div>
+          <div class="regla-desc">Los pronósticos se cierran automáticamente al inicio de cada partido. No se aceptan modificaciones ni carga de pronósticos una vez iniciado el partido.</div>
+        </div>
+      </div>
+      <div class="regla-row">
+        <span class="regla-icon">🔒</span>
+        <div>
+          <div class="regla-titulo">Responsabilidad del PIN</div>
+          <div class="regla-desc">Cada participante es responsable de mantener su PIN en secreto. Los pronósticos cargados con el PIN de un usuario se consideran válidos sin excepción.</div>
+        </div>
+      </div>
+      <div class="regla-row" style="border-bottom:none">
+        <span class="regla-icon">🚫</span>
+        <div>
+          <div class="regla-titulo">Conducta deshonesta</div>
+          <div class="regla-desc">Queda prohibido cargar pronósticos con el usuario de otra persona, manipular resultados o cualquier forma de trampa. Resulta en descalificación sin reembolso.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREMIOS -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <span style="font-size:20px">🏆</span>
+      <div style="font-family:var(--font-d);font-size:18px;letter-spacing:.5px">Premios</div>
+    </div>
+    <div style="padding:8px 0;">
+      <div class="regla-row">
+        <span class="regla-icon">💰</span>
+        <div>
+          <div class="regla-titulo">Formación del pozo</div>
+          <div class="regla-desc">El pozo total se forma con la suma de todas las inscripciones ($30.000 por participante). El monto final depende del número total de inscriptos.</div>
+        </div>
+      </div>
+      <div class="regla-row">
+        <span class="regla-icon">📊</span>
+        <div>
+          <div class="regla-titulo">Distribución de premios</div>
+          <div class="regla-desc">1er lugar: 60% del pozo · 2do lugar: 30% del pozo · 3er lugar: 10% del pozo. Los porcentajes se aplican sobre el pozo total acumulado.</div>
+        </div>
+      </div>
+      <div class="regla-row">
+        <span class="regla-icon">🤝</span>
+        <div>
+          <div class="regla-titulo">Empate en el ranking</div>
+          <div class="regla-desc">En caso de empate en puntos al finalizar el torneo, se prioriza quien tenga más resultados exactos. Si persiste el empate, el premio del puesto se divide en partes iguales.</div>
+        </div>
+      </div>
+      <div class="regla-row" style="border-bottom:none">
+        <span class="regla-icon">📅</span>
+        <div>
+          <div class="regla-titulo">Pago de premios</div>
+          <div class="regla-desc">Los premios se abonan dentro de los 7 días corridos de finalizado el Mundial 2026. La forma de pago se coordinará directamente con los ganadores.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORGANIZACIÓN -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <span style="font-size:20px">⚙️</span>
+      <div style="font-family:var(--font-d);font-size:18px;letter-spacing:.5px">Organización</div>
+    </div>
+    <div style="padding:8px 0;">
+      <div class="regla-row">
+        <span class="regla-icon">👑</span>
+        <div>
+          <div class="regla-titulo">Decisiones finales</div>
+          <div class="regla-desc">Los organizadores se reservan el derecho de resolver cualquier situación no contemplada en estos términos. Su decisión es definitiva e inapelable.</div>
+        </div>
+      </div>
+      <div class="regla-row" style="border-bottom:none">
+        <span class="regla-icon">📋</span>
+        <div>
+          <div class="regla-titulo">Modificaciones</div>
+          <div class="regla-desc">Los organizadores pueden modificar estos términos con previo aviso a los participantes. Los cambios se comunicarán por los medios oficiales del prode.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACEPTACIÓN -->
+  <div style="background:rgba(184,247,60,0.04);border:1px solid rgba(184,247,60,0.12);border-radius:var(--r);padding:16px;text-align:center;">
+    <div style="font-size:13px;color:var(--muted);line-height:1.7;">
+      Al registrarse en el Prode Neuquén 2026, el participante declara haber leído,<br/>
+      comprendido y aceptado todos los términos y condiciones aquí establecidos.<br/>
+      <span style="color:var(--green);font-weight:600">⚽ ¡Buena suerte a todos!</span>
     </div>
   </div>
 </section>
