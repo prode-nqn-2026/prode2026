@@ -1298,7 +1298,8 @@ async function verPerfil(nombre) {
   // Datos básicos
   document.getElementById('perfil-modal-pos').textContent = data.posicion !== '—' ? '#' + data.posicion : '—';
   document.getElementById('perfil-modal-pts').textContent = (data.puntos||0) + ' pts';
-  document.getElementById('perfil-modal-desde').textContent = data.fechaReg ? 'Desde ' + data.fechaReg : '';
+  const fechaRegFmt = data.fechaReg ? formatFecha(data.fechaReg) : '';
+  document.getElementById('perfil-modal-desde').textContent = fechaRegFmt ? 'Desde ' + fechaRegFmt : '';
 
   // Movimiento
   const mov = data.movimiento || '=';
