@@ -546,8 +546,8 @@ function switchTab(tab){
       <div class="login-title">TUS PRONÓSTICOS</div>
       <div class="login-sub">Ingresá tu nombre y PIN para<br/>cargar o ver tus predicciones</div>
       <div class="login-fields">
-        <input class="input" type="text" id="login-nombre" placeholder="Tu nombre..." autocomplete="off"/>
-        <input class="input" type="number" id="login-pin" placeholder="PIN (4 números)" maxlength="4"/>
+        <input class="input" type="text" id="login-nombre" placeholder="Tu nombre..." autocomplete="username"/>
+        <input class="input" type="password" id="login-pin" placeholder="PIN (4 números)" maxlength="4" autocomplete="current-password"/>
         <button class="btn btn-primary" onclick="loginUser()" style="width:100%;justify-content:center">Entrar →</button>
       </div>
     </div>
@@ -627,22 +627,22 @@ function switchTab(tab){
 <div class="overlay" id="modal-login">
   <div class="modal">
     <div class="modal-title">INICIAR SESIÓN <button class="modal-close" onclick="cerrarModal('login')">×</button></div>
-    <div class="field"><label>Nombre</label><input type="text" id="quick-nombre" placeholder="Tu nombre..." autocomplete="off"/></div>
-    <div class="field"><label>PIN de 4 números</label><input type="number" id="quick-pin" placeholder="1234" maxlength="4"/></div>
+    <div class="field"><label>Nombre</label><input type="text" id="quick-nombre" placeholder="Tu nombre..." autocomplete="username"/></div>
+    <div class="field"><label>PIN de 4 números</label><input type="password" id="quick-pin" placeholder="1234" maxlength="4" autocomplete="current-password"/></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="cerrarModal('login')">Cancelar</button>
       <button class="btn btn-primary" id="btn-login-rapido" onclick="loginRapido()">Entrar →</button>
     </div>
     <div class="modal-note">¿Aún no te registraste? <span style="color:var(--green);cursor:pointer" onclick="cerrarModal('login');abrirModal('registro')">Unirme al prode →</span></div>
-  </div>
+  </form></div>
 </div>
 
 <!-- MODAL REGISTRO -->
 <div class="overlay" id="modal-registro">
   <div class="modal">
     <div class="modal-title">UNIRME <button class="modal-close" onclick="cerrarModal('registro')">×</button></div>
-    <div class="field"><label>Nombre *</label><input type="text" id="reg-nombre" placeholder="Ej: Martín G."/></div>
-    <div class="field"><label>PIN de 4 números *</label><input type="number" id="reg-pin" placeholder="Ej: 1234" min="0" max="9999"/></div>
+    <div class="field"><label>Nombre *</label><input type="text" id="reg-nombre" placeholder="Ej: Martín G." autocomplete="username"/></div>
+    <div class="field"><label>PIN de 4 números *</label><input type="password" id="reg-pin" placeholder="Ej: 1234" autocomplete="new-password"/></div>
     <div class="field"><label>WhatsApp</label><input type="text" id="reg-wa" placeholder="+54 299 ..."/></div>
     <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="opcional"/></div>
     <div class="modal-actions">
