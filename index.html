@@ -698,7 +698,7 @@ let pronLocales  = {};
 let pronGuardados = {};
 
 // Init
-(function(){
+document.addEventListener('DOMContentLoaded', function(){
   if(SCRIPT_URL){
     cargarRanking();
     cargarFixture();
@@ -708,7 +708,7 @@ let pronGuardados = {};
     m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('on'); });
   });
   iniciarContador();
-})();
+});
 
 // ── API ───────────────────────────────────────────────────────
 async function apiGet(accion, extra=''){
@@ -1405,7 +1405,7 @@ function iniciarContador() {
 }
 
 // Iniciar al cargar
-document.addEventListener('DOMContentLoaded', iniciarContador);
+
 
 function actualizarHeroBtns() {
   const btnUnirme   = document.getElementById('btn-unirme');
