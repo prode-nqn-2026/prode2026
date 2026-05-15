@@ -370,6 +370,10 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-heigh
 
 /* EMPTY */
 .empty{padding:48px 20px;text-align:center;color:var(--muted);font-size:13px}
+.regla-row{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:flex-start;}
+.regla-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.regla-titulo{font-size:14px;font-weight:600;color:var(--white);margin-bottom:3px}
+.regla-desc{font-size:12px;color:var(--muted);line-height:1.6}
 .menu-item{display:block;width:100%;text-align:left;padding:12px 16px;background:transparent;border:none;color:var(--white);font-size:13px;font-family:var(--font-b);cursor:pointer;transition:background .12s;}
 .menu-item:hover{background:rgba(255,255,255,0.05)}
 .empty-icon{font-size:36px;display:block;margin-bottom:12px}
@@ -476,6 +480,7 @@ function switchTab(tab){
     <button class="nav-tab" data-tab="fixture" onclick="switchTab('fixture')">📅 Fixture</button>
     <button class="nav-tab" data-tab="pronosticos" onclick="switchTab('pronosticos')">📝 Pronósticos</button>
     <button class="nav-tab" data-tab="estadisticas" onclick="switchTab('estadisticas')">📊 Estadísticas</button>
+    <button class="nav-tab" data-tab="reglas" onclick="switchTab('reglas')">📋 Reglas</button>
   </nav>
 </div>
 
@@ -693,6 +698,111 @@ function switchTab(tab){
 </div>
 
 <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:300;display:none;"></canvas>
+<!-- REGLAS -->
+<section id="view-reglas" class="view">
+  <div class="section-hdr">
+    <div class="section-title">REGLAS</div>
+  </div>
+
+  <!-- PUNTUACIÓN -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <span style="font-size:22px">🎯</span>
+      <div>
+        <div style="font-family:var(--font-d);font-size:18px;letter-spacing:.5px">Sistema de puntos</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Así se calculan los puntos por partido</div>
+      </div>
+    </div>
+    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(184,247,60,0.06);border:1px solid rgba(184,247,60,0.15);border-radius:10px;">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--white)">Resultado exacto</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Acertás el marcador exacto · Ej: 2-1</div>
+        </div>
+        <div style="font-family:var(--font-d);font-size:32px;color:var(--green)">3 pts</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(255,208,96,0.06);border:1px solid rgba(255,208,96,0.15);border-radius:10px;">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--white)">Resultado 1X2</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Acertás quién gana o empate, pero no el marcador</div>
+        </div>
+        <div style="font-family:var(--font-d);font-size:32px;color:var(--gold)">1 pt</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(255,85,85,0.05);border:1px solid rgba(255,85,85,0.12);border-radius:10px;">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--white)">Error</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">No acertás ni el resultado ni el ganador</div>
+        </div>
+        <div style="font-family:var(--font-d);font-size:32px;color:var(--red)">0 pts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGLAS GENERALES -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <span style="font-size:22px">📋</span>
+      <div>
+        <div style="font-family:var(--font-d);font-size:18px;letter-spacing:.5px">Reglas generales</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Leelas antes de arrancar</div>
+      </div>
+    </div>
+    <div style="padding:8px 0;">
+      <div class="regla-row">
+        <span class="regla-icon">⏰</span>
+        <div>
+          <div class="regla-titulo">Cierre de pronósticos</div>
+          <div class="regla-desc">Los pronósticos se cierran automáticamente cuando el partido empieza. No se pueden modificar ni cargar después.</div>
+        </div>
+      </div>
+      <div class="regla-row">
+        <span class="regla-icon">🏆</span>
+        <div>
+          <div class="regla-titulo">Desempate en el ranking</div>
+          <div class="regla-desc">Si dos participantes tienen los mismos puntos, gana quien tenga más resultados exactos. Si siguen empatados, se comparten la posición.</div>
+        </div>
+      </div>
+      <div class="regla-row">
+        <span class="regla-icon">🔒</span>
+        <div>
+          <div class="regla-titulo">PIN personal</div>
+          <div class="regla-desc">Cada participante tiene un PIN de 4 números para proteger sus pronósticos. No lo compartas con nadie.</div>
+        </div>
+      </div>
+      <div class="regla-row" style="border-bottom:none;">
+        <span class="regla-icon">🤝</span>
+        <div>
+          <div class="regla-titulo">Fair play</div>
+          <div class="regla-desc">Está prohibido cargar pronósticos con el nombre de otro participante. Jugá con tu propio usuario.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE ELIMINATORIA -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;">
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:22px">⚡</span>
+      <div>
+        <div style="font-family:var(--font-d);font-size:18px;letter-spacing:.5px">Fase eliminatoria</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Octavos, cuartos, semis y final — puntaje especial próximamente</div>
+      </div>
+      <span class="badge b-gray" style="margin-left:auto;font-size:10px">Próximamente</span>
+    </div>
+  </div>
+
+  <!-- EJEMPLO RÁPIDO -->
+  <div style="background:rgba(184,247,60,0.04);border:1px solid rgba(184,247,60,0.12);border-radius:var(--r);padding:16px;">
+    <div style="font-size:12px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">💡 Ejemplo rápido</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.8;">
+      El partido termina <strong style="color:var(--white)">Argentina 2 - 1 Argelia</strong><br/>
+      · Pronosticaste <strong style="color:var(--green)">2-1</strong> → <strong style="color:var(--green)">3 puntos</strong> (exacto)<br/>
+      · Pronosticaste <strong style="color:var(--gold)">1-0</strong> → <strong style="color:var(--gold)">1 punto</strong> (acertaste que ganaba Argentina)<br/>
+      · Pronosticaste <strong style="color:var(--red)">0-1</strong> → <strong style="color:var(--red)">0 puntos</strong> (error)
+    </div>
+  </div>
+</section>
+
 <div id="toast"></div>
 <footer>Prode Mundial 2026 · Actualización automática · Hecho con ❤️ en Neuquén</footer>
 
