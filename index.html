@@ -463,6 +463,7 @@ function switchTab(tab){
         </div>
         <button class="menu-item" onclick="abrirModal('editar-perfil');cerrarMenuUsuario()">✏️ Editar mis datos</button>
         <button class="menu-item" onclick="abrirModal('cambiar-pin');cerrarMenuUsuario()">🔐 Cambiar PIN</button>
+        <button class="menu-item" onclick="abrirModal('cambiar-foto');cerrarMenuUsuario()">📷 Cambiar foto</button>
         <button class="menu-item" onclick="switchTab('pronosticos');cerrarMenuUsuario()">📝 Mis pronósticos</button>
         <button class="menu-item" style="color:var(--red);border-top:1px solid var(--border)" onclick="logoutUser();cerrarMenuUsuario()">🚪 Cerrar sesión</button>
       </div>
@@ -573,25 +574,9 @@ function switchTab(tab){
       <button class="btn btn-ghost btn-sm" onclick="logoutUser()">Salir</button>
     </div>
 
-    <!-- FOTO DE PERFIL -->
-    <div style="display:flex;align-items:center;gap:16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;">
-      <div style="position:relative;flex-shrink:0;">
-        <div id="foto-preview" style="width:80px;height:107px;border-radius:10px;overflow:hidden;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;">
-          <span id="foto-placeholder" style="font-size:32px;">👤</span>
-          <img id="foto-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;" />
-        </div>
-        <label for="foto-input" style="position:absolute;bottom:-8px;right:-8px;width:28px;height:28px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;" title="Cambiar foto">📷</label>
-        <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="previsualizarFoto(this)" />
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:16px;font-weight:600;margin-bottom:4px" id="perfil-nombre"></div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Hacé clic en 📷 para subir tu foto de perfil</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-primary btn-sm" id="btn-subir-foto" onclick="subirFoto()" style="display:none">Subir foto</button>
-          <div id="foto-status" style="font-size:12px;color:var(--muted);padding-top:6px;"></div>
-        </div>
-      </div>
-    </div>
+    <!-- nombre perfil oculto para referencia -->
+    <div id="perfil-nombre" style="display:none"></div>
+    <div id="foto-img-ref" style="display:none"></div>
 
     <div id="pron-resumen" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
     <div class="pron-wrap">
@@ -651,6 +636,29 @@ function switchTab(tab){
       </div>
     </form>
     <div class="modal-note">¿Aún no te registraste? <span style="color:var(--green);cursor:pointer" onclick="cerrarModal('login');abrirModal('registro')">Unirme al prode →</span></div>
+  </div>
+</div>
+
+<!-- MODAL CAMBIAR FOTO -->
+<div class="overlay" id="modal-cambiar-foto">
+  <div class="modal">
+    <div class="modal-title">MI FOTO <button class="modal-close" onclick="cerrarModal('cambiar-foto')">×</button></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:8px 0;">
+      <div style="position:relative;">
+        <div id="modal-foto-preview" style="width:120px;height:160px;border-radius:12px;overflow:hidden;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;">
+          <span id="modal-foto-ph" style="font-size:48px">👤</span>
+          <img id="modal-foto-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;"/>
+        </div>
+        <label for="modal-foto-input" style="position:absolute;bottom:-10px;right:-10px;width:36px;height:36px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;">📷</label>
+        <input type="file" id="modal-foto-input" accept="image/*" style="display:none" onchange="previsualizarFotoModal(this)"/>
+      </div>
+      <div style="font-size:12px;color:var(--muted);text-align:center">Tamaño recomendado: 300x400px<br/>Máximo 5MB</div>
+      <div id="modal-foto-status" style="font-size:12px;color:var(--muted)"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="cerrarModal('cambiar-foto')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-subir-foto-modal" onclick="subirFotoModal()" style="display:none">Guardar foto →</button>
+    </div>
   </div>
 </div>
 
@@ -1382,13 +1390,18 @@ function renderStats(ranking){
   }
   const maxPts=Math.max(...ranking.map(r=>r.puntos||0),1);
   document.getElementById('stats-list').innerHTML=ranking.map((p,i)=>{
-    const av=AVATARS[i%AVATARS.length];
-    const ini=p.nombre.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
-    const pct=Math.round((p.puntos||0)/maxPts*100);
+    const av      = AVATARS[i%AVATARS.length];
+    const ini     = p.nombre.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+    const pct     = Math.round((p.puntos||0)/maxPts*100);
+    const fotoUrl = p.foto_url || localStorage.getItem('prode_foto_' + p.nombre) || '';
+    const avatarHtml = fotoUrl
+      ? `<div class="avatar" style="padding:0;overflow:hidden;flex-shrink:0"><img src="${fotoUrl}" style="width:100%;height:100%;object-fit:cover;"/></div>`
+      : `<div class="avatar" style="background:${av.bg};color:${av.fg};flex-shrink:0">${ini}</div>`;
+    const medal = i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':'';
     return `<div class="stats-row">
-      <div class="avatar" style="background:${av.bg};color:${av.fg};flex-shrink:0">${ini}</div>
+      ${avatarHtml}
       <div class="bar-wrap">
-        <div class="bar-name">${p.nombre}</div>
+        <div class="bar-name">${medal}${p.nombre}</div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
       </div>
       <div class="bar-pts">${p.puntos||0}</div>
@@ -1431,77 +1444,80 @@ function formatHora(h){
 }
 // ── FOTO DE PERFIL ───────────────────────────────────────────
 let fotoFileLocal = null;
+let fotoFileModal = null;
 
 async function cargarFotoPerfil(nombre) {
   const data = await apiGet('getFoto', '&nombre=' + encodeURIComponent(nombre));
   if (data?.ok && data.url) {
-    mostrarFoto(data.url);
     localStorage.setItem('prode_foto_' + nombre, data.url);
+    // Actualizar foto en el modal si está abierto
+    const img = document.getElementById('modal-foto-img');
+    const ph  = document.getElementById('modal-foto-ph');
+    if (img && data.url) { img.src=data.url; img.style.display='block'; if(ph) ph.style.display='none'; }
   }
 }
 
-function previsualizarFoto(input) {
+function previsualizarFotoModal(input) {
   const file = input.files[0];
   if (!file) return;
   if (file.size > 5 * 1024 * 1024) { toast('La foto no puede superar 5MB', true); return; }
-  fotoFileLocal = file;
+  fotoFileModal = file;
   const reader = new FileReader();
   reader.onload = e => {
-    mostrarFoto(e.target.result);
-    document.getElementById('btn-subir-foto').style.display = 'inline-flex';
-    document.getElementById('foto-status').textContent = 'Foto lista para subir';
+    const img = document.getElementById('modal-foto-img');
+    const ph  = document.getElementById('modal-foto-ph');
+    img.src = e.target.result; img.style.display = 'block'; ph.style.display = 'none';
+    document.getElementById('btn-subir-foto-modal').style.display = 'inline-flex';
+    document.getElementById('modal-foto-status').textContent = 'Foto lista para subir';
   };
   reader.readAsDataURL(file);
 }
 
-function mostrarFoto(src) {
-  const img = document.getElementById('foto-img');
-  const ph  = document.getElementById('foto-placeholder');
-  img.src = src;
-  img.style.display = 'block';
-  ph.style.display  = 'none';
-}
-
-function limpiarFoto() {
-  const img = document.getElementById('foto-img');
-  const ph  = document.getElementById('foto-placeholder');
-  img.src = ''; img.style.display = 'none';
-  ph.style.display = 'block';
-  document.getElementById('btn-subir-foto').style.display = 'none';
-  document.getElementById('foto-status').textContent = '';
-  fotoFileLocal = null;
-}
-
-async function subirFoto() {
-  if (!fotoFileLocal || !currentUser) return;
-  const btn = document.getElementById('btn-subir-foto');
-  btn.innerHTML = '<span class="spin"></span> Subiendo...';
-  btn.disabled = true;
-
+async function subirFotoModal() {
+  if (!fotoFileModal || !currentUser) return;
+  const btn = document.getElementById('btn-subir-foto-modal');
+  btn.innerHTML = '<span class="spin"></span> Subiendo...'; btn.disabled = true;
   const reader = new FileReader();
   reader.onload = async e => {
     const base64 = e.target.result.split(',')[1];
-    const mime   = fotoFileLocal.type;
     const res = await apiPost({
-      accion: 'subirFoto',
-      nombre: currentUser,
-      pin: document.getElementById('login-pin').value,
-      fotoBase64: base64,
-      mimeType: mime
+      accion: 'subirFoto', nombre: currentUser,
+      pin: localStorage.getItem('prode_pin') || '',
+      fotoBase64: base64, mimeType: fotoFileModal.type
     });
-    btn.innerHTML = 'Subir foto'; btn.disabled = false;
+    btn.innerHTML = 'Guardar foto →'; btn.disabled = false;
     if (res?.ok) {
-      toast('📸 Foto de perfil actualizada');
-      document.getElementById('foto-status').textContent = '✅ Guardada';
-      document.getElementById('btn-subir-foto').style.display = 'none';
-      fotoFileLocal = null;
+      localStorage.setItem('prode_foto_' + currentUser, res.url);
+      cerrarModal('cambiar-foto');
+      fotoFileModal = null;
+      toast('📸 Foto actualizada');
       cargarRanking();
     } else {
       toast(res?.mensaje || 'Error al subir la foto', true);
     }
   };
-  reader.readAsDataURL(fotoFileLocal);
+  reader.readAsDataURL(fotoFileModal);
 }
+
+// Cargar foto actual al abrir modal
+const _abrirModalOrig = abrirModal;
+function abrirModal(id) {
+  _abrirModalOrig(id);
+  if (id === 'cambiar-foto' && currentUser) {
+    fotoFileModal = null;
+    document.getElementById('btn-subir-foto-modal').style.display = 'none';
+    document.getElementById('modal-foto-status').textContent = '';
+    const cached = localStorage.getItem('prode_foto_' + currentUser);
+    const img = document.getElementById('modal-foto-img');
+    const ph  = document.getElementById('modal-foto-ph');
+    if (cached) { img.src=cached; img.style.display='block'; ph.style.display='none'; }
+    else { img.style.display='none'; ph.style.display='block'; }
+    document.getElementById('modal-foto-input').value = '';
+  }
+}
+
+function mostrarFoto(src) {}  // mantener compatibilidad
+function limpiarFoto() {}
 
 // ── CONFETTI & FESTEJO ───────────────────────────────────────
 
