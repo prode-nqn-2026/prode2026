@@ -403,6 +403,7 @@ function abrirModal(id){
   const el=document.getElementById('modal-'+id);
   if(el) el.classList.add('on');
   if(id==='editar-perfil') cargarDatosPerfil();
+  if(id==='cambiar-foto')  prepararModalFoto();
 }
 function cerrarModal(id){const el=document.getElementById('modal-'+id);if(el)el.classList.remove('on')}
 function switchTab(tab){
@@ -1500,21 +1501,18 @@ async function subirFotoModal() {
   reader.readAsDataURL(fotoFileModal);
 }
 
-// Cargar foto actual al abrir modal
-const _abrirModalOrig = abrirModal;
-function abrirModal(id) {
-  _abrirModalOrig(id);
-  if (id === 'cambiar-foto' && currentUser) {
-    fotoFileModal = null;
-    document.getElementById('btn-subir-foto-modal').style.display = 'none';
-    document.getElementById('modal-foto-status').textContent = '';
-    const cached = localStorage.getItem('prode_foto_' + currentUser);
-    const img = document.getElementById('modal-foto-img');
-    const ph  = document.getElementById('modal-foto-ph');
-    if (cached) { img.src=cached; img.style.display='block'; ph.style.display='none'; }
-    else { img.style.display='none'; ph.style.display='block'; }
-    document.getElementById('modal-foto-input').value = '';
-  }
+// Cargar foto actual al abrir modal cambiar-foto
+function prepararModalFoto() {
+  if (!currentUser) return;
+  fotoFileModal = null;
+  document.getElementById('btn-subir-foto-modal').style.display = 'none';
+  document.getElementById('modal-foto-status').textContent = '';
+  const cached = localStorage.getItem('prode_foto_' + currentUser);
+  const img = document.getElementById('modal-foto-img');
+  const ph  = document.getElementById('modal-foto-ph');
+  if (cached) { img.src=cached; img.style.display='block'; if(ph) ph.style.display='none'; }
+  else { if(img) img.style.display='none'; if(ph) ph.style.display='block'; }
+  document.getElementById('modal-foto-input').value = '';
 }
 
 function mostrarFoto(src) {}  // mantener compatibilidad
