@@ -528,6 +528,7 @@ function switchTab(tab){
       </div>
     </div>
 
+    <div id="pron-resumen" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
     <div class="pron-wrap">
       <div class="pron-head">
         <div style="text-align:right">Local</div>
@@ -535,7 +536,7 @@ function switchTab(tab){
         <div></div>
         <div style="text-align:center">GV</div>
         <div>Visitante</div>
-        <div style="text-align:center">Estado</div>
+        <div style="text-align:center">Resultado</div>
       </div>
       <div id="pron-list"><div class="empty">Cargando partidos...</div></div>
     </div>
@@ -815,12 +816,47 @@ function renderPron(){
   if(!fixtureData.length) return;
   document.getElementById('pron-list').innerHTML=fixtureData.map(m=>{
     const p=pronLocales[m.id]||{gl:'',gv:''};
-    const jugado=m.estado==='FT';
+    const jugado = m.estado==='FT' || (m.gol_l!==''&&m.gol_l!==undefined&&m.gol_l!==null&&m.gol_l!=='');
     const fl=flag(m.local), fv=flag(m.visitante);
-    const badge=jugado
-      ?'<span class="badge b-gray" style="font-size:10px">Cerrado</span>'
-      :'<span class="badge b-green" style="font-size:10px">Abierto</span>';
-    return `<div class="pron-row">
+
+    // Calcular resultado del pronóstico
+    let badge='', resultStyle='', resHtml='';
+    if(jugado && p.gl!=='' && p.gv!==''){
+      const rl=parseInt(m.gol_l), rv=parseInt(m.gol_v);
+      const pl=parseInt(p.gl),    pv=parseInt(p.gv);
+      if(pl===rl && pv===rv){
+        // Exacto ✅
+        badge='<span class="badge b-green" style="font-size:10px">✅ Exacto +3</span>';
+        resultStyle='background:rgba(184,247,60,0.05);border-left:3px solid var(--green)';
+      } else {
+        const ganReal = rl>rv?'L':rv>rl?'V':'E';
+        const ganPred = pl>pv?'L':pv>pl?'V':'E';
+        if(ganReal===ganPred){
+          // 1X2 🟡
+          badge='<span class="badge b-gold" style="font-size:10px">🟡 1X2 +1</span>';
+          resultStyle='background:rgba(255,208,96,0.05);border-left:3px solid var(--gold)';
+        } else {
+          // Error ❌
+          badge='<span class="badge b-red" style="font-size:10px">❌ Error</span>';
+          resultStyle='background:rgba(255,85,85,0.04);border-left:3px solid var(--red)';
+        }
+      }
+      // Mostrar resultado real abajo
+      resHtml=`<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:3px">Real: ${rl} - ${rv}</div>`;
+    } else if(jugado && (p.gl===''||p.gv==='')){
+      badge='<span class="badge b-red" style="font-size:10px">❌ Sin pron.</span>';
+      resultStyle='background:rgba(255,85,85,0.04);border-left:3px solid var(--red)';
+      const rl=parseInt(m.gol_l)||0, rv=parseInt(m.gol_v)||0;
+      resHtml=`<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:3px">Real: ${rl} - ${rv}</div>`;
+    } else if(!jugado){
+      badge='<span class="badge b-green" style="font-size:10px">Abierto</span>';
+      resultStyle='';
+    } else {
+      badge='<span class="badge b-gray" style="font-size:10px">Pendiente</span>';
+      resultStyle='';
+    }
+
+    return `<div class="pron-row" style="${resultStyle};padding-left:${resultStyle?'11px':'14px'}">
       <div class="pron-team right"><span class="pron-flag">${fl}</span>${m.local}</div>
       <input class="score-in" type="number" min="0" max="20" value="${p.gl}" placeholder="?" ${jugado?'disabled':''}
         onchange="setPron(${m.id},'gl',this.value)"/>
@@ -828,9 +864,45 @@ function renderPron(){
       <input class="score-in" type="number" min="0" max="20" value="${p.gv}" placeholder="?" ${jugado?'disabled':''}
         onchange="setPron(${m.id},'gv',this.value)"/>
       <div class="pron-team"><span class="pron-flag">${fv}</span>${m.visitante}</div>
-      <div style="text-align:center">${badge}</div>
+      <div style="text-align:center">${badge}${resHtml}</div>
     </div>`;
   }).join('');
+  actualizarResumenPron();
+}
+
+function actualizarResumenPron(){
+  let exactos=0, aciertos=0, errores=0, puntos=0;
+  fixtureData.forEach(m=>{
+    const jugado=m.estado==='FT'||(m.gol_l!==''&&m.gol_l!==undefined&&m.gol_l!==null&&m.gol_l!=='');
+    if(!jugado) return;
+    const p=pronLocales[m.id]||{gl:'',gv:''};
+    if(p.gl===''||p.gv===''){errores++;return;}
+    const rl=parseInt(m.gol_l),rv=parseInt(m.gol_v);
+    const pl=parseInt(p.gl),pv=parseInt(p.gv);
+    if(pl===rl&&pv===rv){exactos++;puntos+=3;}
+    else{
+      const gr=rl>rv?'L':rv>rl?'V':'E';
+      const gp=pl>pv?'L':pv>pl?'V':'E';
+      if(gr===gp){aciertos++;puntos+=1;}
+      else errores++;
+    }
+  });
+  const el=document.getElementById('pron-resumen');
+  if(!el) return;
+  if(exactos+aciertos+errores===0){el.innerHTML='';return;}
+  el.innerHTML=`
+    <div style="background:rgba(184,247,60,0.08);border:1px solid rgba(184,247,60,0.2);border-radius:10px;padding:12px;text-align:center">
+      <div style="font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Exactos</div>
+      <div style="font-family:var(--font-d);font-size:26px;color:var(--green)">${exactos}</div>
+    </div>
+    <div style="background:rgba(255,208,96,0.08);border:1px solid rgba(255,208,96,0.2);border-radius:10px;padding:12px;text-align:center">
+      <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">1X2</div>
+      <div style="font-family:var(--font-d);font-size:26px;color:var(--gold)">${aciertos}</div>
+    </div>
+    <div style="background:rgba(184,247,60,0.06);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Mis puntos</div>
+      <div style="font-family:var(--font-d);font-size:26px;color:var(--white)">${puntos}</div>
+    </div>`;
 }
 
 function setPron(id,campo,val){
