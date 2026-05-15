@@ -412,7 +412,34 @@ function switchTab(tab){
   <div class="hero-title">PRODE<br/><em>CROMA</em><br/>2026</div>
   <div class="hero-flags">🇺🇸 🇨🇦 🇲🇽</div>
   <div class="hero-sub">11 de junio · 19 de julio de 2026</div>
-  <div class="hero-btns">
+  <!-- CONTADOR REGRESIVO ARGENTINA -->
+  <div id="contador-wrap" style="margin:20px auto 0;max-width:360px;background:rgba(184,247,60,0.06);border:1px solid rgba(184,247,60,0.15);border-radius:var(--r);padding:14px 16px;display:none;">
+    <div style="font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;text-align:center">🇦🇷 Próximo partido de Argentina</div>
+    <div style="display:flex;justify-content:center;gap:8px;" id="contador-boxes">
+      <div style="text-align:center">
+        <div style="font-family:var(--font-d);font-size:36px;color:var(--white);line-height:1" id="cnt-dias">00</div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:2px">Días</div>
+      </div>
+      <div style="font-family:var(--font-d);font-size:32px;color:var(--muted);padding-top:2px">:</div>
+      <div style="text-align:center">
+        <div style="font-family:var(--font-d);font-size:36px;color:var(--white);line-height:1" id="cnt-horas">00</div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:2px">Horas</div>
+      </div>
+      <div style="font-family:var(--font-d);font-size:32px;color:var(--muted);padding-top:2px">:</div>
+      <div style="text-align:center">
+        <div style="font-family:var(--font-d);font-size:36px;color:var(--white);line-height:1" id="cnt-min">00</div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:2px">Min</div>
+      </div>
+      <div style="font-family:var(--font-d);font-size:32px;color:var(--muted);padding-top:2px">:</div>
+      <div style="text-align:center">
+        <div style="font-family:var(--font-d);font-size:36px;color:var(--green);line-height:1" id="cnt-seg">00</div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:2px">Seg</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px" id="cnt-rival"></div>
+  </div>
+
+  <div class="hero-btns" style="margin-top:20px">
     <button class="btn btn-primary" onclick="abrirModal('registro')">+ Unirme al prode</button>
     <button class="btn btn-ghost" onclick="abrirLoginRapido()">🔑 Iniciar sesión</button>
     <button class="btn btn-ghost" onclick="switchTab('fixture')">Ver fixture →</button>
@@ -1213,6 +1240,61 @@ async function subirFoto() {
   };
   reader.readAsDataURL(fotoFileLocal);
 }
+
+// ── CONTADOR REGRESIVO ARGENTINA ─────────────────────────────
+
+// Partidos de Argentina del fixture oficial
+const PARTIDOS_ARG = [
+  { fecha: '2026-06-16T22:00:00', rival: 'vs Argelia 🇩🇿', grupo: 'Grupo J' },
+  { fecha: '2026-06-22T14:00:00', rival: 'vs Austria 🇦🇹',  grupo: 'Grupo J' },
+  { fecha: '2026-06-27T23:00:00', rival: 'vs Jordania 🇯🇴', grupo: 'Grupo J' },
+];
+
+let contadorInterval = null;
+
+function iniciarContador() {
+  const ahora = new Date();
+  // Buscar próximo partido de Argentina que no haya pasado
+  const proximo = PARTIDOS_ARG.find(p => new Date(p.fecha) > ahora);
+
+  if (!proximo) {
+    // Ya jugó todos los partidos de grupos — ocultar
+    document.getElementById('contador-wrap').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('contador-wrap').style.display = 'block';
+  document.getElementById('cnt-rival').textContent = proximo.rival + ' · ' + proximo.grupo;
+
+  if (contadorInterval) clearInterval(contadorInterval);
+
+  contadorInterval = setInterval(() => {
+    const diff = new Date(proximo.fecha) - new Date();
+    if (diff <= 0) {
+      clearInterval(contadorInterval);
+      document.getElementById('cnt-dias').textContent = '00';
+      document.getElementById('cnt-horas').textContent = '00';
+      document.getElementById('cnt-min').textContent = '00';
+      document.getElementById('cnt-seg').textContent = '00';
+      document.getElementById('cnt-rival').textContent = '¡El partido está comenzando! ⚽';
+      // Reiniciar para buscar el siguiente
+      setTimeout(iniciarContador, 60000);
+      return;
+    }
+    const dias  = Math.floor(diff / (1000*60*60*24));
+    const horas = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+    const mins  = Math.floor((diff % (1000*60*60)) / (1000*60));
+    const segs  = Math.floor((diff % (1000*60)) / 1000);
+
+    document.getElementById('cnt-dias').textContent  = String(dias).padStart(2,'0');
+    document.getElementById('cnt-horas').textContent = String(horas).padStart(2,'0');
+    document.getElementById('cnt-min').textContent   = String(mins).padStart(2,'0');
+    document.getElementById('cnt-seg').textContent   = String(segs).padStart(2,'0');
+  }, 1000);
+}
+
+// Iniciar al cargar
+document.addEventListener('DOMContentLoaded', iniciarContador);
 
 function abrirLoginRapido() {
   // Si ya está logueado, ir directo a pronósticos
