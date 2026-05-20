@@ -604,6 +604,10 @@ function switchTab(tab){
     <button class="filter-btn" onclick="filtrar('K',this)">Grupo K</button>
     <button class="filter-btn" onclick="filtrar('L',this)">Grupo L</button>
     <button class="filter-btn" onclick="filtrar('ELIM',this)">Eliminatorias</button>
+    <button class="filter-btn" onclick="filtrar('OCTAVOS',this)">Octavos</button>
+    <button class="filter-btn" onclick="filtrar('CUARTOS',this)">Cuartos</button>
+    <button class="filter-btn" onclick="filtrar('SEMIS',this)">Semis</button>
+    <button class="filter-btn" onclick="filtrar('FINAL',this)">Final</button>
   </div>
 
   <!-- Filtros por jornada -->
@@ -1497,11 +1501,14 @@ function setModoFixture(modo, btn) {
 function filtrar(grupo,btn){
   document.querySelectorAll('#filtros-grupo .filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  const lista=grupo==='ELIM'
-    ? fixtureData.filter(p=>p.jornada>48)
-    : grupo
-      ? fixtureData.filter(p=>p.grupo===grupo)
-      : fixtureData;
+  let lista;
+  if (!grupo) {
+    lista = fixtureData;
+  } else if (grupo === 'ELIM') {
+    lista = fixtureData.filter(p => ['OCTAVOS','CUARTOS','SEMIS','TERCER','FINAL'].includes(p.grupo));
+  } else {
+    lista = fixtureData.filter(p => p.grupo === grupo);
+  }
   renderFixture(lista);
 }
 
@@ -1569,11 +1576,23 @@ function renderFixture(partidos){
   if(!partidos?.length){
     document.getElementById('fixture-list').innerHTML='<div class="empty"><span class="empty-icon">📅</span>No hay partidos para mostrar</div>'; return;
   }
+  const RONDAS_ELIM = {
+    'OCTAVOS':'⚡ OCTAVOS DE FINAL',
+    'CUARTOS':'🔥 CUARTOS DE FINAL',
+    'SEMIS':'💥 SEMIFINALES',
+    'TERCER':'🥉 TERCER PUESTO',
+    'FINAL':'🏆 GRAN FINAL'
+  };
   let html='', grupoAct='';
   partidos.forEach(m=>{
     if(m.grupo!==grupoAct){
       grupoAct=m.grupo;
-      html+=`<div class="group-hdr">GRUPO ${grupoAct}</div>`;
+      const esElim=RONDAS_ELIM[grupoAct];
+      if(esElim){
+        html+=`<div class="group-hdr" style="color:var(--green);font-size:14px">${esElim}</div>`;
+      } else {
+        html+=`<div class="group-hdr">GRUPO ${grupoAct}</div>`;
+      }
     }
     const jugado=m.estado==='FT'||(m.gol_l!==''&&m.gol_l!==undefined&&m.gol_l!==null&&m.gol_l!=='');
     const live=m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
