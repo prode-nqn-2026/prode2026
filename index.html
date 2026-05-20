@@ -440,7 +440,11 @@ function switchTab(tab){
   <span class="hero-ball">⚽</span>
   <div class="hero-badge">🏆 Mundial 2026</div>
   <div class="hero-title">PRODE<br/><em>NEUQUÉN</em><br/>2026</div>
-  <div class="hero-flags">🇺🇸 🇨🇦 🇲🇽</div>
+  <div class="hero-flags" style="display:flex;justify-content:center;align-items:center;gap:10px;margin:12px 0;">
+    <img src="https://flagcdn.com/w40/us.png" style="width:36px;height:24px;object-fit:cover;border-radius:3px;" alt="USA"/>
+    <img src="https://flagcdn.com/w40/ca.png" style="width:36px;height:24px;object-fit:cover;border-radius:3px;" alt="Canadá"/>
+    <img src="https://flagcdn.com/w40/mx.png" style="width:36px;height:24px;object-fit:cover;border-radius:3px;" alt="México"/>
+  </div>
   <div class="hero-sub">11 de junio · 19 de julio de 2026</div>
   <!-- CONTADOR REGRESIVO ARGENTINA -->
   <div id="contador-wrap" style="margin:20px auto 0;max-width:360px;background:rgba(184,247,60,0.06);border:1px solid rgba(184,247,60,0.15);border-radius:var(--r);padding:14px 16px;display:none;">
@@ -1094,34 +1098,29 @@ function switchTab(tab){
 
 <script>
 // ── BANDERAS ──────────────────────────────────────────────────
-// Todos los países del Mundial 2026 oficial
-const FLAGS = {
-  // GRUPO A
-  'México':'🇲🇽','Sudáfrica':'🇿🇦','Corea del Sur':'🇰🇷','República Checa':'🇨🇿',
-  // GRUPO B
-  'Canadá':'🇨🇦','Qatar':'🇶🇦','Suiza':'🇨🇭','Bosnia':'🇧🇦',
-  // GRUPO C
-  'Brasil':'🇧🇷','Marruecos':'🇲🇦','Haití':'🇭🇹','Escocia':'🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-  // GRUPO D
-  'Estados Unidos':'🇺🇸','Paraguay':'🇵🇾','Australia':'🇦🇺','Turquía':'🇹🇷',
-  // GRUPO E
-  'Alemania':'🇩🇪','Curazao':'🇨🇼','Costa de Marfil':'🇨🇮','Ecuador':'🇪🇨',
-  // GRUPO F
-  'Países Bajos':'🇳🇱','Japón':'🇯🇵','Túnez':'🇹🇳','Suecia':'🇸🇪',
-  // GRUPO G
-  'Bélgica':'🇧🇪','Egipto':'🇪🇬','Irán':'🇮🇷','Nueva Zelanda':'🇳🇿',
-  // GRUPO H
-  'España':'🇪🇸','Cabo Verde':'🇨🇻','Arabia Saudita':'🇸🇦','Uruguay':'🇺🇾',
-  // GRUPO I
-  'Francia':'🇫🇷','Senegal':'🇸🇳','Noruega':'🇳🇴','Irak':'🇮🇶',
-  // GRUPO J
-  'Argentina':'🇦🇷','Argelia':'🇩🇿','Austria':'🇦🇹','Jordania':'🇯🇴',
-  // GRUPO K
-  'Portugal':'🇵🇹','Rep. Dem. Congo':'🇨🇩','Uzbekistán':'🇺🇿','Colombia':'🇨🇴',
-  // GRUPO L
-  'Inglaterra':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Croacia':'🇭🇷','Ghana':'🇬🇭','Panamá':'🇵🇦',
+// Códigos ISO de países para flagcdn.com
+const FLAG_CODES = {
+  'México':'mx','Sudáfrica':'za','Corea del Sur':'kr','República Checa':'cz',
+  'Canadá':'ca','Qatar':'qa','Suiza':'ch','Bosnia':'ba',
+  'Brasil':'br','Marruecos':'ma','Haití':'ht','Escocia':'gb-sct',
+  'Estados Unidos':'us','Paraguay':'py','Australia':'au','Turquía':'tr',
+  'Alemania':'de','Curazao':'cw','Costa de Marfil':'ci','Ecuador':'ec',
+  'Países Bajos':'nl','Japón':'jp','Túnez':'tn','Suecia':'se',
+  'Bélgica':'be','Egipto':'eg','Irán':'ir','Nueva Zelanda':'nz',
+  'España':'es','Cabo Verde':'cv','Arabia Saudita':'sa','Uruguay':'uy',
+  'Francia':'fr','Senegal':'sn','Noruega':'no','Irak':'iq',
+  'Argentina':'ar','Argelia':'dz','Austria':'at','Jordania':'jo',
+  'Portugal':'pt','Rep. Dem. Congo':'cd','Uzbekistán':'uz','Colombia':'co',
+  'Inglaterra':'gb-eng','Croacia':'hr','Ghana':'gh','Panamá':'pa',
 };
-function flag(pais){ return FLAGS[pais] || '🏳️'; }
+
+function flag(pais, size=20) {
+  const code = FLAG_CODES[pais];
+  if (!code) return '<span style="font-size:'+size+'px">🏳️</span>';
+  return `<img src="https://flagcdn.com/w40/${code}.png" 
+    style="width:${size+4}px;height:${Math.round((size+4)*0.67)}px;object-fit:cover;border-radius:2px;vertical-align:middle;display:inline-block;" 
+    alt="${pais}" loading="lazy" onerror="this.style.display='none'"/>`;
+}
 
 // ── CONFIG ────────────────────────────────────────────────────
 const SCRIPT_URL_FIJA = 'https://script.google.com/macros/s/AKfycbwpCjcP7s8zRMAEMEfKxUVLTBn5B5gzBQ_IqFtB650mLxK_TBvfIo740I6NUUNMbGOs/exec';
@@ -1336,7 +1335,7 @@ async function verPerfil(nombre) {
   }
 
   document.getElementById('perfil-historial').innerHTML = h.map(p => {
-    const fl = flag(p.local), fv = flag(p.visitante);
+    const fl = flag(p.local, 14), fv = flag(p.visitante, 14);
     const color = p.resultado==='exacto' ? 'var(--green)' : p.resultado==='1x2' ? 'var(--gold)' : 'var(--red)';
     const icon  = p.resultado==='exacto' ? '✅' : p.resultado==='1x2' ? '🟡' : '❌';
     const pts   = p.resultado==='exacto' ? '+3' : p.resultado==='1x2' ? '+1' : '0';
@@ -1543,7 +1542,7 @@ function renderFixtureJornada(partidos) {
     ms.forEach(m => {
       const jugado = m.estado==='FT'||(m.gol_l!==''&&m.gol_l!==undefined&&m.gol_l!==null&&m.gol_l!=='');
       const live   = m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
-      const fl=flag(m.local), fv=flag(m.visitante);
+      const fl=flag(m.local,22), fv=flag(m.visitante,22);
       html += `<div class="match-card">
         <div class="match-inner">
           <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:1">
@@ -1596,7 +1595,7 @@ function renderFixture(partidos){
     }
     const jugado=m.estado==='FT'||(m.gol_l!==''&&m.gol_l!==undefined&&m.gol_l!==null&&m.gol_l!=='');
     const live=m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
-    const fl=flag(m.local), fv=flag(m.visitante);
+    const fl=flag(m.local,22), fv=flag(m.visitante,22);
     html+=`<div class="match-card">
       <div class="match-inner">
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:1">
@@ -1720,13 +1719,13 @@ function renderPron(){
     }
 
     return `<div class="pron-row" style="${resultStyle};padding-left:${resultStyle?'11px':'14px'}">
-      <div class="pron-team right"><span class="pron-flag">${fl}</span>${m.local}</div>
+      <div class="pron-team right">${fl} ${m.local}</div>
       <input class="score-in" type="number" min="0" max="20" value="${p.gl}" placeholder="?" ${jugado?'disabled':''}
         onchange="setPron(${m.id},'gl',this.value)"/>
       <div class="pron-sep">:</div>
       <input class="score-in" type="number" min="0" max="20" value="${p.gv}" placeholder="?" ${jugado?'disabled':''}
         onchange="setPron(${m.id},'gv',this.value)"/>
-      <div class="pron-team"><span class="pron-flag">${fv}</span>${m.visitante}</div>
+      <div class="pron-team">${m.visitante} ${fv}</div>
       <div style="text-align:center">${badge}${resHtml}</div>
     </div>`;
   }).join('');
