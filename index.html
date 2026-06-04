@@ -661,6 +661,97 @@ footer{
   .match-team-name{font-size:12px}
 }
 
+
+
+/* =========================================================
+   REBEKA - BOTONES FIJOS SIN DESLIZAMIENTO
+   Cambia la navegación y los filtros para que todos los botones
+   queden visibles en pantalla, sin scroll horizontal.
+   ========================================================= */
+.nav-wrap{
+  padding:8px 12px;
+}
+.nav{
+  width:100%;
+  max-width:980px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(128px,1fr));
+  gap:8px;
+  overflow:visible;
+}
+.nav-tab{
+  width:100%;
+  margin:0;
+  padding:11px 10px;
+  border-radius:12px;
+  text-align:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.08);
+}
+.nav-tab.active{
+  background:linear-gradient(135deg,rgba(184,247,60,.18),rgba(184,247,60,.08));
+  border-color:rgba(184,247,60,.35);
+}
+.filter-bar{
+  display:flex;
+  flex-wrap:wrap;
+  overflow:visible;
+  gap:8px;
+  padding-bottom:0;
+}
+.filter-bar .filter-btn{
+  flex:1 1 112px;
+  text-align:center;
+  justify-content:center;
+  min-height:36px;
+}
+#filtros-grupo .filter-btn{
+  flex-basis:94px;
+}
+#filtros-jornada .filter-btn{
+  flex-basis:120px;
+}
+#view-eliminatorias .filter-bar .filter-btn{
+  flex-basis:128px;
+}
+@media(max-width:640px){
+  .nav-wrap{
+    padding:8px;
+  }
+  .nav{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:7px;
+  }
+  .nav-tab{
+    font-size:12px;
+    padding:10px 8px;
+    min-height:40px;
+  }
+  .filter-bar{
+    gap:6px;
+  }
+  .filter-bar .filter-btn{
+    flex:1 1 calc(50% - 6px);
+    padding:8px 8px;
+    font-size:11px;
+  }
+  #filtros-grupo .filter-btn{
+    flex:1 1 calc(33.333% - 6px);
+  }
+}
+@media(max-width:360px){
+  .nav-tab{
+    font-size:11px;
+  }
+  #filtros-grupo .filter-btn{
+    flex:1 1 calc(50% - 6px);
+  }
+}
 </style>
 </head>
 <body>
