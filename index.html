@@ -700,6 +700,7 @@ function switchTab(tab){
   <div class="hero-highlights" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 auto 18px;max-width:520px;">
     <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:999px;padding:8px 12px;font-size:12px;color:var(--muted2);">🏆 Ranking en vivo</span>
     <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:999px;padding:8px 12px;font-size:12px;color:var(--muted2);">⚽ 104 partidos</span>
+    <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:999px;padding:8px 12px;font-size:12px;color:var(--muted2);">💰 Premios en efectivo</span>
   </div>
   <!-- CONTADOR REGRESIVO ARGENTINA -->
   <div id="contador-wrap" style="margin:20px auto 0;max-width:360px;background:rgba(184,247,60,0.06);border:1px solid rgba(184,247,60,0.15);border-radius:var(--r);padding:14px 16px;display:none;">
@@ -1543,6 +1544,9 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   }, CACHE_TTL);
   iniciarContador();
+  chequearRecordatorios();
+  // Chequear cada 30 minutos
+  setInterval(chequearRecordatorios, 30 * 60 * 1000);
 });
 
 // ── API ───────────────────────────────────────────────────────
@@ -2123,8 +2127,8 @@ function renderPron(){
           <div class="acord-meta">${totalPartidos} partidos · ${abiertos} abiertos · ${pronCarg} pronósticos cargados</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
-          ${abiertos > 0 ? `<button id="rec-btn-${g.key}" style="background:rgba(184,247,60,0.1);border:1px solid rgba(184,247,60,0.2);border-radius:999px;padding:4px 10px;font-size:11px;color:var(--green);cursor:pointer;z-index:10;position:relative;">
-            🔔 Recordar
+          ${mostrarCampana(g) ? `<button id="rec-btn-${g.key}" style="background:transparent;border:none;font-size:20px;cursor:pointer;z-index:10;position:relative;padding:4px 8px;" title="Activar recordatorio">
+            ${recordatorioActivo(g.key) ? '🔔' : '🔕'}
           </button>` : ''}
           <span class="acord-arrow">▼</span>
         </div>
@@ -2142,10 +2146,11 @@ function renderPron(){
     if (recBtn) {
       const partAbiertos = g.partidos.filter(m => !estaJugado(m)).map(m => m.fecha + ' ' + m.hora);
       const tituloJornada = g.titulo;
+      const keyJornada = g.key;
       recBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         e.preventDefault();
-        pedirRecordatorio(tituloJornada, partAbiertos);
+        toggleRecordatorio(keyJornada, tituloJornada, partAbiertos);
       });
     }
 
@@ -2233,71 +2238,97 @@ function toggleAcord(key) {
   body.classList.toggle('open');
 }
 
-function pedirRecordatorio(jornada, fechasHoras) {
-  if (!('Notification' in window)) {
-    toast('Tu navegador no soporta notificaciones 😕', true); return;
-  }
+// ── SISTEMA DE RECORDATORIOS ─────────────────────────────────
+const DIAS_ANTES = 5;
 
-  // Si ya está concedido, programar directo
-  if (Notification.permission === 'granted') {
-    programarRecordatorios(jornada, fechasHoras); return;
-  }
+function getFechaPartido(fechaStr, horaStr) {
+  try {
+    const [dia, mes, anio] = fechaStr.split('/');
+    const [hh, mm] = horaStr.split(':');
+    return new Date(parseInt(anio), parseInt(mes)-1, parseInt(dia), parseInt(hh), parseInt(mm), 0);
+  } catch(e) { return null; }
+}
 
-  // Si está denegado, mostrar instrucciones
-  if (Notification.permission === 'denied') {
-    abrirModal('notif-ayuda'); return;
-  }
+function mostrarCampana(g) {
+  if (!g.partidos) return false;
+  const ahora = new Date();
+  return g.partidos.some(m => {
+    if (estaJugado(m)) return false;
+    const fp = getFechaPartido(m.fecha, m.hora);
+    if (!fp) return false;
+    const diasFalta = (fp - ahora) / (1000*60*60*24);
+    return diasFalta >= 0 && diasFalta <= DIAS_ANTES;
+  });
+}
 
-  // Si está pendiente, mostrar explicación antes de pedir
+function recordatorioActivo(key) {
+  const saved = JSON.parse(localStorage.getItem('prode_recordatorios') || '{}');
+  return !!saved[key];
+}
+
+function toggleRecordatorio(key, jornada, fechasHoras) {
+  const activo = recordatorioActivo(key);
+  if (activo) {
+    const saved = JSON.parse(localStorage.getItem('prode_recordatorios') || '{}');
+    delete saved[key];
+    localStorage.setItem('prode_recordatorios', JSON.stringify(saved));
+    actualizarCampana(key, false);
+    toast('🔕 Recordatorio desactivado');
+    return;
+  }
+  if (!('Notification' in window)) { toast('Tu navegador no soporta notificaciones 😕', true); return; }
+  if (Notification.permission === 'denied') { abrirModal('notif-ayuda'); return; }
+  if (Notification.permission === 'granted') { guardarYActivar(key, jornada, fechasHoras); return; }
   abrirModal('notif-permiso');
   document.getElementById('btn-pedir-notif').onclick = function() {
     cerrarModal('notif-permiso');
     Notification.requestPermission().then(perm => {
       if (perm !== 'granted') { abrirModal('notif-ayuda'); return; }
-      programarRecordatorios(jornada, fechasHoras);
+      guardarYActivar(key, jornada, fechasHoras);
     });
   };
-  // Guardar los datos para usar después del permiso
-  document.getElementById('btn-pedir-notif').dataset.jornada = jornada;
-  document.getElementById('btn-pedir-notif').dataset.fechas  = JSON.stringify(fechasHoras);
 }
 
-function programarRecordatorios(jornada, fechasHoras) {
-  // Ya tenemos permiso, programar directo
-  (async () => {
-    const perm = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
-    if (perm !== 'granted') { toast('Permiso denegado', true); return; }
+function guardarYActivar(key, jornada, fechasHoras) {
+  const saved = JSON.parse(localStorage.getItem('prode_recordatorios') || '{}');
+  saved[key] = { jornada, fechas: fechasHoras };
+  localStorage.setItem('prode_recordatorios', JSON.stringify(saved));
+  actualizarCampana(key, true);
+  toast('🔔 Recordatorio activado para ' + jornada);
+}
 
-    let programados = 0;
-    fechasHoras.forEach(fh => {
+function actualizarCampana(key, activo) {
+  const btn = document.getElementById('rec-btn-' + key);
+  if (btn) btn.textContent = activo ? '🔔' : '🔕';
+}
+
+function chequearRecordatorios() {
+  if (Notification.permission !== 'granted') return;
+  const saved = JSON.parse(localStorage.getItem('prode_recordatorios') || '{}');
+  const ahora = new Date();
+  Object.entries(saved).forEach(([key, data]) => {
+    (data.fechas || []).forEach(fh => {
       try {
         const [fecha, hora] = fh.split(' ');
-        const [dia, mes, anio] = fecha.split('/');
-        const [hh, mm] = hora.split(':');
-        const fechaPartido = new Date(parseInt(anio), parseInt(mes)-1, parseInt(dia), parseInt(hh), parseInt(mm), 0);
-        fechaPartido.setHours(fechaPartido.getHours() + 3); // UTC-3 Argentina → UTC
-        const recordatorio = new Date(fechaPartido.getTime() - 60 * 60 * 1000); // 1 hora antes
-        const ahora = new Date();
-        const diff = recordatorio - ahora;
-        if (diff > 0) {
-          setTimeout(() => {
-            new Notification('⚽ Prode Neuquén 2026', {
-              body: '¡Falta 1 hora para ' + jornada + '! Cargá tus pronósticos antes de que empiece.',
-              icon: 'https://prode-nqn-2026.github.io/prode2026/preview.svg'
-            });
-          }, diff);
-          programados++;
+        const fp = getFechaPartido(fecha, hora);
+        if (!fp) return;
+        const diff = fp - ahora;
+        if (diff > 0 && diff <= 60 * 60 * 1000) {
+          const mins = Math.round(diff / 60000);
+          new Notification('⚽ Prode Neuquén 2026', {
+            body: `¡Faltan ${mins} minutos para ${data.jornada}! Cargá tus pronósticos.`,
+            icon: 'https://prode-nqn-2026.github.io/prode2026/preview.svg'
+          });
         }
       } catch(e) {}
     });
-
-    if (programados > 0) {
-      toast('🔔 Recordatorio activado para ' + jornada);
-    } else {
-      toast('Los partidos de esta jornada ya pasaron', true);
-    }
   });
 }
+
+function pedirRecordatorio(jornada, fechasHoras) {
+  toggleRecordatorio('legacy', jornada, fechasHoras);
+}
+
 
 // Abreviar nombres de equipos largos para móvil
 function abreviar(nombre) {
