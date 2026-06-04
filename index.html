@@ -10,16 +10,16 @@
 
 <!-- OPEN GRAPH — vista previa en WhatsApp, redes sociales -->
 <meta property="og:title" content="Prode Neuquén 2026 🏆"/>
-<meta property="og:description" content="¡Participá en el prode del Mundial 2026! Cargá tus pronósticos, competí con amigos y ganá premios en efectivo."/>
+<meta property="og:description" content="¡Participá en el prode del Mundial 2026! Cargá tus pronósticos y competí con amigos."/>
 <meta property="og:image" content="https://prode-nqn-2026.github.io/prode2026/preview.png"/>
 <meta property="og:url" content="https://prode-nqn-2026.github.io/prode2026"/>
 <meta property="og:type" content="website"/>
 <meta property="og:locale" content="es_AR"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="Prode Neuquén 2026 🏆"/>
-<meta name="twitter:description" content="¡Participá en el prode del Mundial 2026! Cargá tus pronósticos, competí con amigos y ganá premios en efectivo."/>
+<meta name="twitter:description" content="¡Participá en el prode del Mundial 2026! Cargá tus pronósticos y competí con amigos."/>
 <meta name="twitter:image" content="https://prode-nqn-2026.github.io/prode2026/preview.png"/>
-<meta name="description" content="Prode Neuquén 2026 — pronósticos del Mundial, ranking en tiempo real y premios en efectivo."/>
+<meta name="description" content="Prode Neuquén 2026 — pronósticos del Mundial y ranking en tiempo real."/>
 <meta name="theme-color" content="#B8F73C"/>
 
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -2023,7 +2023,7 @@ function logoutUser(){
 function renderPron(){
   if(!fixtureData.length) return;
 
-  // Agrupar por jornada/ronda
+  // Agrupar por DÍA (como el fixture por jornada)
   const grupos = {};
   const RONDAS_NOMBRES = {
     'OCTAVOS':'⚡ Octavos de Final',
@@ -2039,11 +2039,25 @@ function renderPron(){
       key    = 'ELIM_' + m.grupo;
       titulo = RONDAS_NOMBRES[m.grupo];
     } else {
-      key    = 'J' + m.jornada;
-      titulo = 'Jornada ' + m.jornada;
+      // Agrupar por fecha
+      const fechaFmt = formatFecha(m.fecha);
+      key    = 'DIA_' + (m.fecha || 'sin-fecha').replace(/\//g, '-');
+      titulo = fechaFmt || m.fecha;
     }
     if (!grupos[key]) grupos[key] = { titulo, partidos: [], key };
     grupos[key].partidos.push(m);
+  });
+
+  // Ordenar grupos por fecha
+  const gruposOrdenados = Object.values(grupos).sort((a, b) => {
+    // Eliminatorias van al final
+    if (a.key.startsWith('ELIM_') && !b.key.startsWith('ELIM_')) return 1;
+    if (!a.key.startsWith('ELIM_') && b.key.startsWith('ELIM_')) return -1;
+    if (a.key.startsWith('ELIM_') && b.key.startsWith('ELIM_')) return 0;
+    // Ordenar por fecha dd/MM/yyyy
+    const [da,ma,ya] = a.titulo.split('/');
+    const [db,mb,yb] = b.titulo.split('/');
+    try { return new Date(ya,ma-1,da) - new Date(yb,mb-1,db); } catch(e) { return 0; }
   });
 
   const acordeon = document.getElementById('pron-acordeon');
@@ -2052,7 +2066,7 @@ function renderPron(){
   // Abrir la primera jornada con partidos abiertos por defecto
   let primeraAbierta = false;
 
-  Object.values(grupos).forEach((g, idx) => {
+  gruposOrdenados.forEach((g, idx) => {
     const totalPartidos = g.partidos.length;
     const abiertos  = g.partidos.filter(m => !estaJugado(m)).length;
     const jugados   = totalPartidos - abiertos;
@@ -2070,8 +2084,7 @@ function renderPron(){
           <div class="acord-meta">${totalPartidos} partidos · ${abiertos} abiertos · ${pronCarg} pronósticos cargados</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
-          ${abiertos > 0 ? `<button onclick="event.stopPropagation();pedirRecordatorio('${g.titulo}',${JSON.stringify(g.partidos.filter(m=>!estaJugado(m)).map(m=>m.fecha+' '+m.hora))})" 
-            style="background:rgba(184,247,60,0.1);border:1px solid rgba(184,247,60,0.2);border-radius:999px;padding:4px 10px;font-size:11px;color:var(--green);cursor:pointer;">
+          ${abiertos > 0 ? `<button id="rec-btn-${g.key}" style="background:rgba(184,247,60,0.1);border:1px solid rgba(184,247,60,0.2);border-radius:999px;padding:4px 10px;font-size:11px;color:var(--green);cursor:pointer;z-index:10;position:relative;">
             🔔 Recordar
           </button>` : ''}
           <span class="acord-arrow">▼</span>
@@ -2084,6 +2097,18 @@ function renderPron(){
         <div id="rows-${g.key}"></div>
       </div>`;
     acordeon.appendChild(div);
+
+    // Agregar evento al botón recordatorio por separado para evitar propagación
+    const recBtn = document.getElementById('rec-btn-' + g.key);
+    if (recBtn) {
+      const partAbiertos = g.partidos.filter(m => !estaJugado(m)).map(m => m.fecha + ' ' + m.hora);
+      const tituloJornada = g.titulo;
+      recBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        pedirRecordatorio(tituloJornada, partAbiertos);
+      });
+    }
 
     // Filas de partidos
     const rowsEl = document.getElementById('rows-' + g.key);
