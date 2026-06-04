@@ -390,6 +390,26 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-heigh
 /* EMPTY */
 .empty{padding:48px 20px;text-align:center;color:var(--muted);font-size:13px}
 .regla-row{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:flex-start;}
+.acord-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;cursor:pointer;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);margin-bottom:4px;
+  transition:background .15s;user-select:none;
+}
+.acord-header:hover{background:var(--bg3)}
+.acord-header.open{border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0;border-bottom-color:transparent}
+.acord-body{
+  background:var(--bg2);border:1px solid var(--border);border-top:none;
+  border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r);
+  margin-bottom:8px;overflow:hidden;display:none;
+}
+.acord-body.open{display:block}
+.acord-title{font-size:14px;font-weight:600;color:var(--white)}
+.acord-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.acord-arrow{font-size:12px;color:var(--muted);transition:transform .2s}
+.acord-header.open .acord-arrow{transform:rotate(180deg)}
+.acord-stats{display:flex;gap:8px;align-items:center}
 .regla-icon{font-size:20px;flex-shrink:0;margin-top:1px}
 .regla-titulo{font-size:14px;font-weight:600;color:var(--white);margin-bottom:3px}
 .regla-desc{font-size:12px;color:var(--muted);line-height:1.6}
@@ -647,15 +667,7 @@ function switchTab(tab){
     <div id="foto-img-ref" style="display:none"></div>
 
     <div id="pron-resumen" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
-    <div class="pron-wrap">
-      <div style="padding:8px 14px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 80px 1fr 72px;gap:6px;">
-        <div>Local</div>
-        <div style="text-align:center">Marcador</div>
-        <div>Visitante</div>
-        <div style="text-align:center">Estado</div>
-      </div>
-      <div id="pron-list"><div class="empty">Cargando partidos...</div></div>
-    </div>
+    <div id="pron-acordeon"></div>
   </div>
 </section>
 
@@ -1774,7 +1786,72 @@ function logoutUser(){
 
 function renderPron(){
   if(!fixtureData.length) return;
-  document.getElementById('pron-list').innerHTML=fixtureData.map(m=>{
+
+  // Agrupar por jornada/ronda
+  const grupos = {};
+  const RONDAS_NOMBRES = {
+    'OCTAVOS':'⚡ Octavos de Final',
+    'CUARTOS':'🔥 Cuartos de Final',
+    'SEMIS':'💥 Semifinales',
+    'TERCER':'🥉 Tercer Puesto',
+    'FINAL':'🏆 Gran Final'
+  };
+
+  fixtureData.forEach(m => {
+    let key, titulo;
+    if (RONDAS_NOMBRES[m.grupo]) {
+      key    = 'ELIM_' + m.grupo;
+      titulo = RONDAS_NOMBRES[m.grupo];
+    } else {
+      key    = 'J' + m.jornada;
+      titulo = 'Jornada ' + m.jornada;
+    }
+    if (!grupos[key]) grupos[key] = { titulo, partidos: [], key };
+    grupos[key].partidos.push(m);
+  });
+
+  const acordeon = document.getElementById('pron-acordeon');
+  acordeon.innerHTML = '';
+
+  // Abrir la primera jornada con partidos abiertos por defecto
+  let primeraAbierta = false;
+
+  Object.values(grupos).forEach((g, idx) => {
+    const totalPartidos = g.partidos.length;
+    const abiertos  = g.partidos.filter(m => !estaJugado(m)).length;
+    const jugados   = totalPartidos - abiertos;
+    const pronCarg  = g.partidos.filter(m => pronLocales[m.id]?.gl !== '' && pronLocales[m.id]?.gv !== '').length;
+    const tieneAbiertos = abiertos > 0;
+    const abrirPorDefecto = tieneAbiertos && !primeraAbierta;
+    if (abrirPorDefecto) primeraAbierta = true;
+
+    // Header del acordeón
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div class="acord-header ${abrirPorDefecto?'open':''}" onclick="toggleAcord('${g.key}')">
+        <div>
+          <div class="acord-title">${g.titulo}</div>
+          <div class="acord-meta">${totalPartidos} partidos · ${abiertos} abiertos · ${pronCarg} pronósticos cargados</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          ${abiertos > 0 ? `<button onclick="event.stopPropagation();pedirRecordatorio('${g.titulo}',${JSON.stringify(g.partidos.filter(m=>!estaJugado(m)).map(m=>m.fecha+' '+m.hora))})" 
+            style="background:rgba(184,247,60,0.1);border:1px solid rgba(184,247,60,0.2);border-radius:999px;padding:4px 10px;font-size:11px;color:var(--green);cursor:pointer;">
+            🔔 Recordar
+          </button>` : ''}
+          <span class="acord-arrow">▼</span>
+        </div>
+      </div>
+      <div class="acord-body ${abrirPorDefecto?'open':''}" id="acord-${g.key}">
+        <div style="display:grid;grid-template-columns:1fr 80px 1fr 72px;gap:6px;padding:8px 14px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);">
+          <div>Local</div><div style="text-align:center">Marcador</div><div>Visitante</div><div style="text-align:center">Estado</div>
+        </div>
+        <div id="rows-${g.key}"></div>
+      </div>`;
+    acordeon.appendChild(div);
+
+    // Filas de partidos
+    const rowsEl = document.getElementById('rows-' + g.key);
+    rowsEl.innerHTML = g.partidos.map(m=>{
     const p=pronLocales[m.id]||{gl:'',gv:''};
     const jugado = estaJugado(m);
     const fl=flag(m.local), fv=flag(m.visitante);
@@ -1842,8 +1919,56 @@ function renderPron(){
         <div style="text-align:center">${badge}${resHtml}</div>
       </div>
     </div>`;
-  }).join('');
+    }).join('');
+  });
+
   actualizarResumenPron();
+}
+
+function toggleAcord(key) {
+  const header = document.querySelector(`[onclick="toggleAcord('${key}')"]`);
+  const body   = document.getElementById('acord-' + key);
+  if (!header || !body) return;
+  header.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+function pedirRecordatorio(jornada, fechasHoras) {
+  if (!('Notification' in window)) {
+    toast('Tu navegador no soporta notificaciones', true); return;
+  }
+  Notification.requestPermission().then(perm => {
+    if (perm !== 'granted') { toast('Permiso de notificaciones denegado', true); return; }
+
+    let programados = 0;
+    fechasHoras.forEach(fh => {
+      try {
+        const [fecha, hora] = fh.split(' ');
+        const [dia, mes, anio] = fecha.split('/');
+        const [hh, mm] = hora.split(':');
+        const fechaPartido = new Date(parseInt(anio), parseInt(mes)-1, parseInt(dia), parseInt(hh), parseInt(mm), 0);
+        fechaPartido.setHours(fechaPartido.getHours() + 3); // UTC-3 Argentina → UTC
+        const recordatorio = new Date(fechaPartido.getTime() - 60 * 60 * 1000); // 1 hora antes
+        const ahora = new Date();
+        const diff = recordatorio - ahora;
+        if (diff > 0) {
+          setTimeout(() => {
+            new Notification('⚽ Prode Neuquén 2026', {
+              body: '¡Falta 1 hora para ' + jornada + '! Cargá tus pronósticos antes de que empiece.',
+              icon: 'https://prode-nqn-2026.github.io/prode2026/preview.svg'
+            });
+          }, diff);
+          programados++;
+        }
+      } catch(e) {}
+    });
+
+    if (programados > 0) {
+      toast('🔔 Recordatorio activado para ' + jornada);
+    } else {
+      toast('Los partidos de esta jornada ya pasaron', true);
+    }
+  });
 }
 
 // Abreviar nombres de equipos largos para móvil
