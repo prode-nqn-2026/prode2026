@@ -1520,7 +1520,7 @@ function renderEliminatorias(partidos) {
       html += `<div style="font-family:var(--font-d);font-size:16px;letter-spacing:.5px;padding:16px 0 8px;color:var(--white)">${ronda.label}</div>`;
     }
 
-    const jugado = m.estado==='FT' || (m.gol_l!==''&&m.gol_l!==undefined&&m.gol_l!==null&&m.gol_l!=='');
+    const jugado = estaJugado(m);
     const live   = m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
     const ronda  = RONDAS_ELIM[m.grupo] || { color:'transparent', border:'var(--border)' };
     const fl     = flag(m.local, 22), fv = flag(m.visitante, 22);
@@ -1640,7 +1640,7 @@ function renderFixtureJornada(partidos) {
     const ms = porFecha[fecha];
     html += `<div class="group-hdr">${fecha}</div>`;
     ms.forEach(m => {
-      const jugado = m.estado==='FT'||(m.gol_l!==''&&m.gol_l!==undefined&&m.gol_l!==null&&m.gol_l!=='');
+      const jugado = estaJugado(m);
       const live   = m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
       const fl=flag(m.local,22), fv=flag(m.visitante,22);
       html += `<div class="match-card">
@@ -1693,7 +1693,7 @@ function renderFixture(partidos){
         html+=`<div class="group-hdr">GRUPO ${grupoAct}</div>`;
       }
     }
-    const jugado=m.estado==='FT'||(m.gol_l!==''&&m.gol_l!==undefined&&m.gol_l!==null&&m.gol_l!=='');
+    const jugado = estaJugado(m);
     const live=m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
     const fl=flag(m.local,22), fv=flag(m.visitante,22);
     html+=`<div class="match-card">
@@ -1778,7 +1778,7 @@ function renderPron(){
   if(!fixtureData.length) return;
   document.getElementById('pron-list').innerHTML=fixtureData.map(m=>{
     const p=pronLocales[m.id]||{gl:'',gv:''};
-    const jugado = m.estado==='FT' || (m.gol_l!==''&&m.gol_l!==undefined&&m.gol_l!==null&&m.gol_l!=='');
+    const jugado = estaJugado(m);
     const fl=flag(m.local), fv=flag(m.visitante);
 
     // Calcular resultado del pronóstico
@@ -1832,10 +1832,35 @@ function renderPron(){
   actualizarResumenPron();
 }
 
+function estaJugado(m) {
+  // 1. Si la API ya dice que terminó
+  if (m.estado === 'FT' || m.estado === '1H' || m.estado === '2H' || m.estado === 'HT' || m.estado === 'ET' || m.estado === 'P') return true;
+  // 2. Si tiene goles cargados
+  if (m.gol_l !== '' && m.gol_l !== undefined && m.gol_l !== null && m.gol_l !== '') return true;
+  // 3. Verificar por fecha y hora exacta (bloqueo preciso)
+  if (!m.fecha || !m.hora) return false;
+  try {
+    const partes = m.fecha.split('/'); // dd/MM/yyyy
+    if (partes.length !== 3) return false;
+    const [dia, mes, anio] = partes;
+    const [hh, mm] = m.hora.split(':');
+    // Hora Argentina (UTC-3)
+    const fechaPartido = new Date(
+      parseInt(anio), parseInt(mes)-1, parseInt(dia),
+      parseInt(hh), parseInt(mm), 0
+    );
+    // Convertir a UTC+0 sumando 3 horas (Argentina es UTC-3)
+    fechaPartido.setHours(fechaPartido.getHours() + 3);
+    return new Date() >= fechaPartido;
+  } catch(e) {
+    return false;
+  }
+}
+
 function actualizarResumenPron(){
   let exactos=0, aciertos=0, errores=0, puntos=0;
   fixtureData.forEach(m=>{
-    const jugado=m.estado==='FT'||(m.gol_l!==''&&m.gol_l!==undefined&&m.gol_l!==null&&m.gol_l!=='');
+    const jugado=estaJugado(m);
     if(!jugado) return;
     const p=pronLocales[m.id]||{gl:'',gv:''};
     if(p.gl===''||p.gv===''){errores++;return;}
