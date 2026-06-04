@@ -648,13 +648,11 @@ function switchTab(tab){
 
     <div id="pron-resumen" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
     <div class="pron-wrap">
-      <div class="pron-head">
-        <div style="text-align:right">Local</div>
-        <div style="text-align:center">GL</div>
-        <div></div>
-        <div style="text-align:center">GV</div>
+      <div style="padding:8px 14px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 80px 1fr 72px;gap:6px;">
+        <div>Local</div>
+        <div style="text-align:center">Marcador</div>
         <div>Visitante</div>
-        <div style="text-align:center">Resultado</div>
+        <div style="text-align:center">Estado</div>
       </div>
       <div id="pron-list"><div class="empty">Cargando partidos...</div></div>
     </div>
@@ -1818,18 +1816,50 @@ function renderPron(){
       resultStyle='';
     }
 
-    return `<div class="pron-row" style="${resultStyle};padding-left:${resultStyle?'11px':'14px'}">
-      <div class="pron-team right">${fl} ${m.local}</div>
-      <input class="score-in" type="number" min="0" max="20" value="${p.gl}" placeholder="?" ${jugado?'disabled':''}
-        onchange="setPron(${m.id},'gl',this.value)"/>
-      <div class="pron-sep">:</div>
-      <input class="score-in" type="number" min="0" max="20" value="${p.gv}" placeholder="?" ${jugado?'disabled':''}
-        onchange="setPron(${m.id},'gv',this.value)"/>
-      <div class="pron-team">${m.visitante} ${fv}</div>
-      <div style="text-align:center">${badge}${resHtml}</div>
+    const localAbrev = abreviar(m.local);
+    const visitAbrev  = abreviar(m.visitante);
+    return `<div style="${resultStyle};border-bottom:1px solid var(--border);padding:10px 14px;${resultStyle?'border-left:3px solid;':''}">
+      <div style="display:grid;grid-template-columns:1fr 80px 1fr 72px;gap:6px;align-items:center;">
+        <!-- LOCAL -->
+        <div style="display:flex;align-items:center;gap:5px;min-width:0;">
+          ${fl}
+          <span style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${localAbrev}</span>
+        </div>
+        <!-- MARCADOR -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
+          <input class="score-in" type="number" min="0" max="20" value="${p.gl}" placeholder="?" ${jugado?'disabled':''}
+            onchange="setPron(${m.id},'gl',this.value)" style="width:32px;height:32px;font-size:14px"/>
+          <span style="color:var(--muted);font-size:12px">:</span>
+          <input class="score-in" type="number" min="0" max="20" value="${p.gv}" placeholder="?" ${jugado?'disabled':''}
+            onchange="setPron(${m.id},'gv',this.value)" style="width:32px;height:32px;font-size:14px"/>
+        </div>
+        <!-- VISITANTE -->
+        <div style="display:flex;align-items:center;gap:5px;min-width:0;">
+          ${fv}
+          <span style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${visitAbrev}</span>
+        </div>
+        <!-- ESTADO -->
+        <div style="text-align:center">${badge}${resHtml}</div>
+      </div>
     </div>`;
   }).join('');
   actualizarResumenPron();
+}
+
+// Abreviar nombres de equipos largos para móvil
+function abreviar(nombre) {
+  const abrev = {
+    'República Checa': 'Rep. Checa',
+    'Corea del Sur': 'Corea del Sur',
+    'Arabia Saudita': 'Arabia S.',
+    'Costa de Marfil': 'C. de Marfil',
+    'Países Bajos': 'P. Bajos',
+    'Nueva Zelanda': 'N. Zelanda',
+    'Rep. Dem. Congo': 'R.D. Congo',
+    'Estados Unidos': 'EE.UU.',
+    'Cabo Verde': 'Cabo Verde',
+  };
+  return abrev[nombre] || nombre;
 }
 
 function estaJugado(m) {
