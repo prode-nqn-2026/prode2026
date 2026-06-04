@@ -958,6 +958,46 @@ function switchTab(tab){
   <button class="btn btn-primary btn-sm" onclick="guardarTodos()">💾 Guardar todo</button>
 </div>
 
+<!-- MODAL EXPLICACIÓN NOTIFICACIONES -->
+<div class="overlay" id="modal-notif-permiso">
+  <div class="modal" style="max-width:340px;">
+    <div class="modal-title">🔔 RECORDATORIOS <button class="modal-close" onclick="cerrarModal('notif-permiso')">×</button></div>
+    <div style="text-align:center;padding:8px 0 16px;">
+      <div style="font-size:48px;margin-bottom:12px">🔔</div>
+      <div style="font-size:14px;font-weight:500;color:var(--white);margin-bottom:8px">Activar notificaciones</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px">
+        Te vamos a avisar <strong style="color:var(--white)">1 hora antes</strong> de cada partido para que no te olvides de cargar tus pronósticos.<br/><br/>
+        El navegador va a preguntar si querés permitir notificaciones. <strong style="color:var(--green)">Tocá "Permitir"</strong> para activarlas.
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="cerrarModal('notif-permiso')">Ahora no</button>
+      <button class="btn btn-primary" id="btn-pedir-notif">Activar 🔔</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOTIFICACIONES DENEGADAS -->
+<div class="overlay" id="modal-notif-ayuda">
+  <div class="modal" style="max-width:340px;">
+    <div class="modal-title">🔕 SIN PERMISO <button class="modal-close" onclick="cerrarModal('notif-ayuda')">×</button></div>
+    <div style="text-align:center;padding:8px 0 16px;">
+      <div style="font-size:48px;margin-bottom:12px">🔕</div>
+      <div style="font-size:14px;font-weight:500;color:var(--white);margin-bottom:8px">Las notificaciones están bloqueadas</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:4px">Para activarlas seguí estos pasos:</div>
+      <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:left;font-size:12px;color:var(--muted);line-height:1.8;margin-top:8px;">
+        <strong style="color:var(--white)">Android Chrome:</strong><br/>
+        Tocá el 🔒 en la barra → Permisos → Notificaciones → Permitir<br/><br/>
+        <strong style="color:var(--white)">PC Chrome:</strong><br/>
+        Clic en 🔒 → Configuración del sitio → Notificaciones → Permitir
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="cerrarModal('notif-ayuda')">Entendido</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL LOGIN RÁPIDO -->
 <div class="overlay" id="modal-login">
   <div class="modal">
@@ -2196,10 +2236,38 @@ function toggleAcord(key) {
 
 function pedirRecordatorio(jornada, fechasHoras) {
   if (!('Notification' in window)) {
-    toast('Tu navegador no soporta notificaciones', true); return;
+    toast('Tu navegador no soporta notificaciones 😕', true); return;
   }
-  Notification.requestPermission().then(perm => {
-    if (perm !== 'granted') { toast('Permiso de notificaciones denegado', true); return; }
+
+  // Si ya está concedido, programar directo
+  if (Notification.permission === 'granted') {
+    programarRecordatorios(jornada, fechasHoras); return;
+  }
+
+  // Si está denegado, mostrar instrucciones
+  if (Notification.permission === 'denied') {
+    abrirModal('notif-ayuda'); return;
+  }
+
+  // Si está pendiente, mostrar explicación antes de pedir
+  abrirModal('notif-permiso');
+  document.getElementById('btn-pedir-notif').onclick = function() {
+    cerrarModal('notif-permiso');
+    Notification.requestPermission().then(perm => {
+      if (perm !== 'granted') { abrirModal('notif-ayuda'); return; }
+      programarRecordatorios(jornada, fechasHoras);
+    });
+  };
+  // Guardar los datos para usar después del permiso
+  document.getElementById('btn-pedir-notif').dataset.jornada = jornada;
+  document.getElementById('btn-pedir-notif').dataset.fechas  = JSON.stringify(fechasHoras);
+}
+
+function programarRecordatorios(jornada, fechasHoras) {
+  // Ya tenemos permiso, programar directo
+  (async () => {
+    const perm = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+    if (perm !== 'granted') { toast('Permiso denegado', true); return; }
 
     let programados = 0;
     fechasHoras.forEach(fh => {
