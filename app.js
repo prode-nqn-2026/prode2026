@@ -1,7 +1,16 @@
 // ── FUNCIONES TEMPRANAS (modal / tabs) ────────────────────────
 function abrirModal(id){
   const el=document.getElementById('modal-'+id);
-  if(el) el.classList.add('on');
+  if(el) {
+    el.classList.add('on');
+    // Animar secciones internas del modal en cascada
+    const sections = el.querySelectorAll('.modal-section');
+    sections.forEach((s, i) => {
+      s.style.animation = 'none';
+      s.offsetHeight;
+      s.style.animation = `fadeUp .3s ease ${i * 60}ms both`;
+    });
+  }
   if(id==='editar-perfil') cargarDatosPerfil();
   if(id==='cambiar-foto')  prepararModalFoto();
 }

@@ -382,7 +382,7 @@
     <div class="modal-title">PERFIL <button class="modal-close" onclick="cerrarModal('perfil')">×</button></div>
 
     <!-- Header perfil -->
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+    <div class="modal-section" style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
       <div id="perfil-foto-wrap" style="width:80px;height:107px;border-radius:10px;overflow:hidden;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
         <span id="perfil-foto-ph" style="font-size:32px">👤</span>
         <img id="perfil-foto-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;"/>
@@ -400,7 +400,7 @@
     </div>
 
     <!-- Stats -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;">
+    <div class="modal-section" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;">
       <div style="background:rgba(184,247,60,0.08);border:1px solid rgba(184,247,60,0.15);border-radius:10px;padding:10px;text-align:center;">
         <div style="font-family:var(--font-d);font-size:24px;color:var(--green)" id="p-exactos">0</div>
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Exactos</div>
@@ -420,7 +420,7 @@
     </div>
 
     <!-- Barra de rendimiento -->
-    <div style="margin-bottom:20px;">
+    <div class="modal-section" style="margin-bottom:20px;">
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;">
         <span>Rendimiento</span>
         <span id="p-pct">0%</span>
@@ -431,12 +431,12 @@
     </div>
 
     <!-- Botón editar si es el propio perfil -->
-    <div id="perfil-edit-btn" style="display:none;margin-bottom:16px;">
+    <div id="perfil-edit-btn" class="modal-section" style="display:none;margin-bottom:16px;">
       <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="cerrarModal('perfil');abrirModal('editar-perfil')">✏️ Editar mis datos</button>
     </div>
 
     <!-- Historial de pronósticos -->
-    <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">
+    <div class="modal-section" style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">
       📋 Historial de partidos
     </div>
     <div id="perfil-historial">

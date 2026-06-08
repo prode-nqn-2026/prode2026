@@ -739,6 +739,14 @@ footer{
   background:rgba(255,255,255,.015);
 }
 @media(max-width:640px){
+  /* Fondo más brillante en móvil */
+  body{
+    background-image:
+      radial-gradient(circle at 50% -6%, rgba(140,200,30,.09), transparent 32%),
+      radial-gradient(circle at 15% 16%, rgba(56,189,248,.06), transparent 26%),
+      linear-gradient(180deg, rgba(3,5,10,.50) 0%, rgba(6,8,16,.55) 48%, rgba(3,5,10,.62) 100%),
+      url('fondo.png');
+  }
   .hero{min-height:470px;padding-top:44px}
   .hero-title{font-size:clamp(58px,18vw,86px)}
   .nav{justify-content:flex-start}
