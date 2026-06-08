@@ -1,4 +1,4 @@
-const CACHE = 'prode2026-v2';
+const CACHE = 'prode2026-v4';
 const ASSETS = [
   './',
   './index.html',

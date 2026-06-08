@@ -24,6 +24,51 @@
 html{scroll-behavior:smooth}
 body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-height:100vh;overflow-x:hidden}
 
+/* ── SPLASH SCREEN ───────────────────────────────────────── */
+#splash{
+  position:fixed;inset:0;z-index:999;
+  background:#03050A;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  transition:opacity .5s ease, visibility .5s ease;
+}
+#splash.hidden{ opacity:0;visibility:hidden;pointer-events:none; }
+.splash-ball{
+  width:90px;height:90px;object-fit:contain;
+  animation:splashFloat 1.8s ease-in-out infinite, splashIn .6s ease both;
+  filter:drop-shadow(0 0 32px rgba(184,247,60,.35));
+}
+.splash-title{
+  font-family:var(--font-h);font-size:38px;letter-spacing:4px;
+  background:linear-gradient(170deg,#fff 0%,#E8FFB0 45%,#9ECC18 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:splashIn .6s ease .15s both;
+}
+.splash-title em{ font-style:normal;color:var(--green);-webkit-text-fill-color:var(--green); }
+.splash-sub{
+  font-size:13px;color:var(--muted);letter-spacing:2px;
+  animation:splashIn .6s ease .3s both;
+}
+@keyframes splashIn{
+  from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes splashFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+}
+
+/* ── ANIMACIONES GENERALES ───────────────────────────────── */
+.view{ animation:fadeUp .35s ease both; }
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* Entrada escalonada de cards */
+.anim-item{
+  opacity:0;animation:fadeUp .3s ease both;
+}
+
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:var(--bg2)}
@@ -284,16 +329,17 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-heigh
 
 /* TIP GUARDAR */
 .save-tip{
-  position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-8px);
-  background:rgba(184,247,60,.13);border:1px solid rgba(184,247,60,.4);
-  color:var(--white);font-size:12px;padding:8px 16px;border-radius:20px;
-  backdrop-filter:blur(14px);white-space:nowrap;z-index:200;
-  opacity:0;pointer-events:none;
-  transition:opacity .22s ease, transform .22s ease;
-  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  display:none;
+  align-items:center;justify-content:center;gap:6px;
+  margin:0 16px 10px;padding:9px 14px;
+  background:rgba(184,247,60,.1);border:1px solid rgba(184,247,60,.35);
+  border-radius:12px;font-size:12px;color:var(--white);
+  animation:fadeInDown .2s ease;
 }
-.save-tip.visible{
-  opacity:1;transform:translateX(-50%) translateY(0);
+.save-tip.visible{ display:flex; }
+@keyframes fadeInDown{
+  from{opacity:0;transform:translateY(-6px)}
+  to{opacity:1;transform:translateY(0)}
 }
 
 /* STATS */
@@ -388,9 +434,12 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-heigh
 .acord-body{
   background:var(--bg2);border:1px solid var(--border);border-top:none;
   border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r);
-  margin-bottom:8px;overflow:hidden;display:none;
+  margin-bottom:8px;overflow:hidden;
+  max-height:0;
+  transition:max-height .35s cubic-bezier(.4,0,.2,1), opacity .25s ease;
+  opacity:0;
 }
-.acord-body.open{display:block}
+.acord-body.open{max-height:4000px;opacity:1;}
 .acord-title{font-size:14px;font-weight:600;color:var(--white)}
 .acord-meta{font-size:11px;color:var(--muted);margin-top:2px}
 .acord-arrow{font-size:12px;color:var(--muted);transition:transform .2s}

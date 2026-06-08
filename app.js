@@ -12,7 +12,13 @@ function switchTab(tab){
   const btn=document.querySelector('.nav-tab[data-tab="'+tab+'"]');
   if(btn)btn.classList.add('active');
   const view=document.getElementById('view-'+tab);
-  if(view)view.classList.add('active');
+  if(view){
+    view.classList.add('active');
+    // Re-trigger animación al cambiar de sección
+    view.style.animation='none';
+    view.offsetHeight; // reflow
+    view.style.animation='';
+  }
   if(tab==='estadisticas')   cargarEstadisticas();
   if(tab==='eliminatorias') cargarEliminatorias();
 }
@@ -162,6 +168,18 @@ document.addEventListener('DOMContentLoaded', function(){
   chequearRecordatorios();
   // Chequear cada 30 minutos
   setInterval(chequearRecordatorios, 30 * 60 * 1000);
+
+  // Ocultar splash
+  const splash = document.getElementById('splash');
+  if (splash) {
+    const hideSplash = () => splash.classList.add('hidden');
+    // Si hay cache lo ocultamos rápido, si no esperamos un poco más
+    if (cachedRanking || cachedFixture) {
+      setTimeout(hideSplash, 600);
+    } else {
+      setTimeout(hideSplash, 1800);
+    }
+  }
 });
 
 // ── API ───────────────────────────────────────────────────────
@@ -353,7 +371,7 @@ function renderRankingData(data) {
     if (mov.startsWith('↑'))      movHtml = `<span style="font-size:11px;color:var(--green);font-weight:600;margin-left:4px">${mov}</span>`;
     else if (mov.startsWith('↓')) movHtml = `<span style="font-size:11px;color:var(--red);font-weight:600;margin-left:4px">${mov}</span>`;
     else if (!esNuevo)            movHtml = `<span style="font-size:11px;color:var(--muted);margin-left:4px">=</span>`;
-    return `<div class="rank-row ${cls}" style="animation-delay:${i*35}ms;cursor:pointer;" onclick="verPerfil('${p.nombre.replace(/'/g,"\'")}')">
+    return `<div class="rank-row anim-item ${cls}" style="animation-delay:${i*35}ms;cursor:pointer;" onclick="verPerfil('${p.nombre.replace(/'/g,"\'")}')">
       <div class="pos">${medal||(i+1)}</div>
       ${avatarHtml}
       <div class="player-name">${p.nombre}${movHtml}${esNuevo?' <span class="badge b-green" style="font-size:9px;vertical-align:middle">NUEVO</span>':''}</div>
@@ -547,6 +565,7 @@ function renderFixtureJornada(partidos) {
   });
 
   let html = '';
+  let cardIdx = 0;
   Object.keys(porFecha).sort((a,b) => {
     // Ordenar por fecha dd/MM/yyyy
     const [da,ma,ya] = a.split('/'); const [db,mb,yb] = b.split('/');
@@ -558,7 +577,9 @@ function renderFixtureJornada(partidos) {
       const jugado = estaJugado(m);
       const live   = m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
       const fl=flag(m.local,22), fv=flag(m.visitante,22);
-      html += `<div class="match-card">
+      const delay = Math.min(cardIdx * 30, 400);
+      cardIdx++;
+      html += `<div class="match-card anim-item" style="animation-delay:${delay}ms">
         <div class="match-inner">
           <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:1">
             <div style="font-size:14px;font-weight:600;text-align:right">${m.local}</div>
@@ -829,7 +850,7 @@ function renderPron(){
 
     const localAbrev = abreviar(m.local);
     const visitAbrev  = abreviar(m.visitante);
-    return `<div style="${resultStyle};border-bottom:1px solid var(--border);padding:10px 14px;${resultStyle?'border-left:3px solid;':''}">
+    return `<div class="match-row-pron" style="${resultStyle};border-bottom:1px solid var(--border);padding:10px 14px;${resultStyle?'border-left:3px solid;':''}">
       <div style="display:grid;grid-template-columns:1fr 80px 1fr 72px;gap:6px;align-items:center;">
         <!-- LOCAL -->
         <div style="display:flex;align-items:center;gap:5px;min-width:0;">
@@ -839,10 +860,10 @@ function renderPron(){
         <!-- MARCADOR -->
         <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
           <input class="score-in" type="number" min="0" max="20" value="${p.gl}" placeholder="?" ${jugado?'disabled':''}
-            onchange="setPron(${m.id},'gl',this.value)" style="width:32px;height:32px;font-size:14px"/>
+            oninput="setPron(${m.id},'gl',this.value)" onchange="setPron(${m.id},'gl',this.value)" style="width:32px;height:32px;font-size:14px"/>
           <span style="color:var(--muted);font-size:12px">:</span>
           <input class="score-in" type="number" min="0" max="20" value="${p.gv}" placeholder="?" ${jugado?'disabled':''}
-            onchange="setPron(${m.id},'gv',this.value)" style="width:32px;height:32px;font-size:14px"/>
+            oninput="setPron(${m.id},'gv',this.value)" onchange="setPron(${m.id},'gv',this.value)" style="width:32px;height:32px;font-size:14px"/>
         </div>
         <!-- VISITANTE -->
         <div style="display:flex;align-items:center;gap:5px;min-width:0;">
@@ -863,8 +884,17 @@ function toggleAcord(key) {
   const header = document.querySelector(`[onclick="toggleAcord('${key}')"]`);
   const body   = document.getElementById('acord-' + key);
   if (!header || !body) return;
+  const opening = !body.classList.contains('open');
   header.classList.toggle('open');
   body.classList.toggle('open');
+  // Animar las filas al abrir
+  if (opening) {
+    body.querySelectorAll('.match-row-pron').forEach((row, i) => {
+      row.style.animation = 'none';
+      row.offsetHeight;
+      row.style.animation = `fadeUp .25s ease ${i * 25}ms both`;
+    });
+  }
 }
 
 // ── SISTEMA DE RECORDATORIOS ─────────────────────────────────
