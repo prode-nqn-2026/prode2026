@@ -828,10 +828,10 @@ function renderPron(){
         <!-- MARCADOR -->
         <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
           <input class="score-in" type="number" min="0" max="20" value="${p.gl}" placeholder="?" ${jugado?'disabled':''}
-            onchange="setPron(${m.id},'gl',this.value)" style="width:32px;height:32px;font-size:14px"/>
+            onchange="setPron(${m.id},'gl',this.value)" onfocus="mostrarSaveTip()" onblur="ocultarSaveTip()" style="width:32px;height:32px;font-size:14px"/>
           <span style="color:var(--muted);font-size:12px">:</span>
           <input class="score-in" type="number" min="0" max="20" value="${p.gv}" placeholder="?" ${jugado?'disabled':''}
-            onchange="setPron(${m.id},'gv',this.value)" style="width:32px;height:32px;font-size:14px"/>
+            onchange="setPron(${m.id},'gv',this.value)" onfocus="mostrarSaveTip()" onblur="ocultarSaveTip()" style="width:32px;height:32px;font-size:14px"/>
         </div>
         <!-- VISITANTE -->
         <div style="display:flex;align-items:center;gap:5px;min-width:0;">
@@ -1554,4 +1554,18 @@ function toast(msg,err=false){
   const t=document.getElementById('toast');
   t.textContent=msg; t.className='on'+(err?' err':'');
   clearTimeout(t._t); t._t=setTimeout(()=>t.className='',2800);
+}
+
+let _saveTipTimer = null;
+function mostrarSaveTip(){
+  const tip = document.getElementById('save-tip');
+  if (!tip) return;
+  clearTimeout(_saveTipTimer);
+  tip.classList.add('visible');
+}
+function ocultarSaveTip(){
+  const tip = document.getElementById('save-tip');
+  if (!tip) return;
+  // pequeño delay por si el foco salta de un input al otro
+  _saveTipTimer = setTimeout(() => tip.classList.remove('visible'), 300);
 }

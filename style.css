@@ -282,6 +282,19 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-heigh
 .save-info{font-size:13px;color:var(--muted)}
 .save-info strong{color:var(--white)}
 
+/* TIP GUARDAR */
+.save-tip{
+  position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:rgba(184,247,60,.12);border:1px solid rgba(184,247,60,.35);
+  color:var(--white);font-size:12px;padding:8px 14px;border-radius:20px;
+  backdrop-filter:blur(12px);white-space:nowrap;z-index:60;
+  opacity:0;pointer-events:none;
+  transition:opacity .22s ease, transform .22s ease;
+}
+.save-tip.visible{
+  opacity:1;transform:translateX(-50%) translateY(0);
+}
+
 /* STATS */
 .stats-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
 .stats-row:last-child{border-bottom:none}

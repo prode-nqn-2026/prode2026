@@ -306,6 +306,9 @@
   </div>
 </section>
 
+<!-- TIP GUARDAR (aparece al editar pronóstico en móvil) -->
+<div class="save-tip" id="save-tip" aria-live="polite">💾 Cerrá el teclado y tocá <strong>Guardar todo</strong></div>
+
 <!-- SAVE BAR -->
 <div class="save-bar" id="save-bar">
   <div class="save-info"><strong id="save-count">0</strong> pronósticos sin guardar</div>
@@ -464,13 +467,15 @@
 <div class="overlay" id="modal-editar-perfil">
   <div class="modal">
     <div class="modal-title">MIS DATOS <button class="modal-close" onclick="cerrarModal('editar-perfil')">×</button></div>
-    <div class="field"><label>WhatsApp</label><input type="text" id="edit-wa" placeholder="+54 299 ..." autocomplete="tel"/></div>
-    <div class="field"><label>Email</label><input type="email" id="edit-email" placeholder="tu@email.com" autocomplete="email"/></div>
-    <div class="field"><label>PIN actual (para confirmar)</label><input type="password" id="edit-pin-confirm" placeholder="Tu PIN actual" maxlength="4" autocomplete="current-password"/></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="cerrarModal('editar-perfil')">Cancelar</button>
-      <button class="btn btn-primary" id="btn-guardar-perfil" onclick="guardarPerfil()">Guardar →</button>
-    </div>
+    <form name="prode-editar-perfil" onsubmit="guardarPerfil();return false;" autocomplete="on">
+      <div class="field"><label>WhatsApp</label><input type="text" id="edit-wa" placeholder="+54 299 ..." autocomplete="tel"/></div>
+      <div class="field"><label>Email</label><input type="email" id="edit-email" placeholder="tu@email.com" autocomplete="email"/></div>
+      <div class="field"><label>PIN actual (para confirmar)</label><input type="password" id="edit-pin-confirm" placeholder="Tu PIN actual" maxlength="4" autocomplete="current-password"/></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="cerrarModal('editar-perfil')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btn-guardar-perfil">Guardar →</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -478,14 +483,16 @@
 <div class="overlay" id="modal-cambiar-pin">
   <div class="modal">
     <div class="modal-title">CAMBIAR PIN <button class="modal-close" onclick="cerrarModal('cambiar-pin')">×</button></div>
-    <div class="field"><label>PIN actual</label><input type="password" id="pin-actual" placeholder="Tu PIN actual" maxlength="4" autocomplete="current-password"/></div>
-    <div class="field"><label>PIN nuevo</label><input type="password" id="pin-nuevo" placeholder="4 números nuevos" maxlength="4" autocomplete="new-password"/></div>
-    <div class="field"><label>Confirmar PIN nuevo</label><input type="password" id="pin-nuevo-confirm" placeholder="Repetí el PIN nuevo" maxlength="4" autocomplete="new-password"/></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="cerrarModal('cambiar-pin')">Cancelar</button>
-      <button class="btn btn-primary" id="btn-cambiar-pin" onclick="cambiarPin()">Cambiar PIN →</button>
-    </div>
-    <div class="modal-note">🔒 El nuevo PIN reemplaza al anterior</div>
+    <form name="prode-cambiar-pin" onsubmit="cambiarPin();return false;" autocomplete="on">
+      <div class="field"><label>PIN actual</label><input type="password" id="pin-actual" placeholder="Tu PIN actual" maxlength="4" autocomplete="current-password"/></div>
+      <div class="field"><label>PIN nuevo</label><input type="password" id="pin-nuevo" placeholder="4 números nuevos" maxlength="4" autocomplete="new-password"/></div>
+      <div class="field"><label>Confirmar PIN nuevo</label><input type="password" id="pin-nuevo-confirm" placeholder="Repetí el PIN nuevo" maxlength="4" autocomplete="new-password"/></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="cerrarModal('cambiar-pin')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btn-cambiar-pin">Cambiar PIN →</button>
+      </div>
+      <div class="modal-note">🔒 El nuevo PIN reemplaza al anterior</div>
+    </form>
   </div>
 </div>
 
@@ -493,15 +500,17 @@
 <div class="overlay" id="modal-registro">
   <div class="modal">
     <div class="modal-title">UNIRME <button class="modal-close" onclick="cerrarModal('registro')">×</button></div>
-    <div class="field"><label>Nombre *</label><input type="text" id="reg-nombre" placeholder="Ej: Martín G." autocomplete="username"/></div>
-    <div class="field"><label>PIN de 4 números *</label><input type="password" id="reg-pin" placeholder="Ej: 1234" autocomplete="new-password"/></div>
-    <div class="field"><label>WhatsApp</label><input type="text" id="reg-wa" placeholder="+54 299 ..."/></div>
-    <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="opcional"/></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="cerrarModal('registro')">Cancelar</button>
-      <button class="btn btn-primary" id="btn-reg" onclick="registrar()">Registrarme →</button>
-    </div>
-    <div class="modal-note">🔒 Tu PIN protege tus pronósticos.<br/>Tus datos se guardan en el Google Sheet del prode.</div>
+    <form name="prode-registro" onsubmit="registrar();return false;" autocomplete="on">
+      <div class="field"><label>Nombre *</label><input type="text" id="reg-nombre" placeholder="Ej: Martín G." autocomplete="username"/></div>
+      <div class="field"><label>PIN de 4 números *</label><input type="password" id="reg-pin" placeholder="Ej: 1234" autocomplete="new-password"/></div>
+      <div class="field"><label>WhatsApp</label><input type="text" id="reg-wa" placeholder="+54 299 ..."/></div>
+      <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="opcional"/></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="cerrarModal('registro')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btn-reg">Registrarme →</button>
+      </div>
+      <div class="modal-note">🔒 Tu PIN protege tus pronósticos.<br/>Tus datos se guardan en el Google Sheet del prode.</div>
+    </form>
   </div>
 </div>
 
