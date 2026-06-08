@@ -500,7 +500,7 @@ body{
     url('fondo.png');
   background-size: auto, auto, auto, cover;
   background-position: center top, center top, center top, center center;
-  background-attachment: fixed, fixed, fixed, fixed;
+  background-attachment: scroll, scroll, scroll, scroll;
   background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
 }
 body::before{
