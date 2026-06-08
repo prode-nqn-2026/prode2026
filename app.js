@@ -322,9 +322,15 @@ function renderRankingData(data) {
   document.getElementById('s-part').textContent = r.length;
   if (r[0]?.ultima_act) {
     const d = new Date(r[0].ultima_act);
-    const fmt = isNaN(d) ? r[0].ultima_act :
-      d.toLocaleString('es-AR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-    document.getElementById('s-ultima').textContent = fmt;
+    if (!isNaN(d)) {
+      const dd = String(d.getDate()).padStart(2,'0');
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const hh = String(d.getHours()).padStart(2,'0');
+      const min = String(d.getMinutes()).padStart(2,'0');
+      document.getElementById('s-ultima').textContent = `${dd}/${mm} ${hh}:${min}`;
+    } else {
+      document.getElementById('s-ultima').textContent = r[0].ultima_act;
+    }
   }
   renderPozo(r.length);
   renderPodio(r);
