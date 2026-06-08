@@ -121,7 +121,6 @@
   <nav class="nav">
     <button class="nav-tab" data-tab="ranking" data-auth="true" onclick="switchTab('ranking')">🏆 Ranking</button>
     <button class="nav-tab active" data-tab="fixture" onclick="switchTab('fixture')">📅 Fixture</button>
-    <button class="nav-tab" data-tab="eliminatorias" onclick="switchTab('eliminatorias')">⚡ Eliminatorias</button>
     <button class="nav-tab" data-tab="pronosticos" data-auth="true" onclick="switchTab('pronosticos')">📝 Pronósticos</button>
     <button class="nav-tab" data-tab="estadisticas" data-auth="true" onclick="switchTab('estadisticas')">📊 Estadísticas</button>
     <button class="nav-tab" data-tab="reglas" onclick="switchTab('reglas')">📋 Reglas</button>
@@ -209,6 +208,7 @@
   <div style="display:flex;gap:6px;margin-bottom:10px;">
     <button class="filter-btn active" id="modo-grupo-btn" onclick="setModoFixture('grupo',this)">Por grupo</button>
     <button class="filter-btn" id="modo-jornada-btn" onclick="setModoFixture('jornada',this)">Por jornada</button>
+    <button class="filter-btn" id="modo-elim-btn" onclick="setModoFixture('elim',this)">⚡ Eliminatorias</button>
   </div>
 
   <!-- Filtros por grupo -->
@@ -237,6 +237,25 @@
     <button class="filter-btn" onclick="filtrarJornada(3,this)">Jornada 3</button>
   </div>
   <div id="fixture-list"><div class="empty"><span class="empty-icon">📅</span>Cargando fixture...</div></div>
+
+  <!-- ELIMINATORIAS (dentro de fixture) -->
+  <div id="fixture-elim" style="display:none">
+    <div class="section-hdr" style="margin-top:4px;">
+      <div class="section-title">ELIMINATORIAS</div>
+      <button class="btn btn-ghost btn-sm" onclick="cargarEliminatorias()">↻ Actualizar</button>
+    </div>
+    <div class="filter-bar" style="margin-bottom:16px;">
+      <button class="filter-btn active" id="elim-btn-all" onclick="filtrarElim('',this)">Todas</button>
+      <button class="filter-btn" onclick="filtrarElim('OCTAVOS',this)">⚡ Octavos</button>
+      <button class="filter-btn" onclick="filtrarElim('CUARTOS',this)">🔥 Cuartos</button>
+      <button class="filter-btn" onclick="filtrarElim('SEMIS',this)">💥 Semis</button>
+      <button class="filter-btn" onclick="filtrarElim('TERCER',this)">🥉 3er Puesto</button>
+      <button class="filter-btn" onclick="filtrarElim('FINAL',this)">🏆 Final</button>
+    </div>
+    <div id="eliminatorias-list">
+      <div class="empty"><span class="empty-icon">⚡</span>Las eliminatorias aparecerán cuando comiencen.</div>
+    </div>
+  </div>
 </section>
 
 <!-- PRONÓSTICOS -->
@@ -265,28 +284,6 @@
 
     <div id="pron-resumen" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
     <div id="pron-acordeon"></div>
-  </div>
-</section>
-
-<!-- ELIMINATORIAS -->
-<section id="view-eliminatorias" class="view">
-  <div class="section-hdr">
-    <div class="section-title">ELIMINATORIAS</div>
-    <button class="btn btn-ghost btn-sm" onclick="cargarEliminatorias()">↻ Actualizar</button>
-  </div>
-
-  <!-- Filtros rondas -->
-  <div class="filter-bar" style="margin-bottom:16px;">
-    <button class="filter-btn active" id="elim-btn-all" onclick="filtrarElim('',this)">Todas</button>
-    <button class="filter-btn" onclick="filtrarElim('OCTAVOS',this)">⚡ Octavos</button>
-    <button class="filter-btn" onclick="filtrarElim('CUARTOS',this)">🔥 Cuartos</button>
-    <button class="filter-btn" onclick="filtrarElim('SEMIS',this)">💥 Semis</button>
-    <button class="filter-btn" onclick="filtrarElim('TERCER',this)">🥉 3er Puesto</button>
-    <button class="filter-btn" onclick="filtrarElim('FINAL',this)">🏆 Final</button>
-  </div>
-
-  <div id="eliminatorias-list">
-    <div class="empty"><span class="empty-icon">⚡</span>Cargando eliminatorias...</div>
   </div>
 </section>
 

@@ -28,8 +28,7 @@ function switchTab(tab){
     view.offsetHeight; // reflow
     view.style.animation='';
   }
-  if(tab==='estadisticas')   cargarEstadisticas();
-  if(tab==='eliminatorias') cargarEliminatorias();
+  if(tab==='estadisticas') cargarEstadisticas();
 }
 
 // ── CÓDIGO PRINCIPAL ──────────────────────────────────────────
@@ -524,18 +523,21 @@ function setModoFixture(modo, btn) {
   modoFixture = modo;
   document.getElementById('filtros-grupo').style.display   = modo === 'grupo'   ? 'flex' : 'none';
   document.getElementById('filtros-jornada').style.display = modo === 'jornada' ? 'flex' : 'none';
+  document.getElementById('fixture-list').style.display    = modo === 'elim'    ? 'none' : '';
+  document.getElementById('fixture-elim').style.display    = modo === 'elim'    ? 'block' : 'none';
   document.getElementById('modo-grupo-btn').classList.toggle('active',   modo === 'grupo');
   document.getElementById('modo-jornada-btn').classList.toggle('active', modo === 'jornada');
+  document.getElementById('modo-elim-btn').classList.toggle('active',    modo === 'elim');
   if (modo === 'grupo') {
-    // Reset filtro grupo a "Todos"
     document.querySelectorAll('#filtros-grupo .filter-btn').forEach(b=>b.classList.remove('active'));
     document.querySelector('#filtros-grupo .filter-btn').classList.add('active');
     renderFixture(fixtureData);
-  } else {
-    // Reset filtro jornada a "Todas"
+  } else if (modo === 'jornada') {
     document.querySelectorAll('#filtros-jornada .filter-btn').forEach(b=>b.classList.remove('active'));
     document.querySelector('#filtros-jornada .filter-btn').classList.add('active');
     renderFixtureJornada(fixtureData);
+  } else if (modo === 'elim') {
+    cargarEliminatorias();
   }
 }
 
