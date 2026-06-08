@@ -7,7 +7,8 @@ const ASSETS = [
   './manifest.json',
   './Trionda.png',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './fondo.png'
 ];
 
 // Instalación: cachear assets estáticos
