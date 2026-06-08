@@ -320,7 +320,12 @@ function renderPodio(ranking) {
 function renderRankingData(data) {
   const r = data.ranking || [];
   document.getElementById('s-part').textContent = r.length;
-  if (r[0]?.ultima_act) document.getElementById('s-ultima').textContent = r[0].ultima_act;
+  if (r[0]?.ultima_act) {
+    const d = new Date(r[0].ultima_act);
+    const fmt = isNaN(d) ? r[0].ultima_act :
+      d.toLocaleString('es-AR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+    document.getElementById('s-ultima').textContent = fmt;
+  }
   renderPozo(r.length);
   renderPodio(r);
   if (!r.length) {
@@ -828,10 +833,10 @@ function renderPron(){
         <!-- MARCADOR -->
         <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
           <input class="score-in" type="number" min="0" max="20" value="${p.gl}" placeholder="?" ${jugado?'disabled':''}
-            onchange="setPron(${m.id},'gl',this.value)" onfocus="mostrarSaveTip()" onblur="ocultarSaveTip()" style="width:32px;height:32px;font-size:14px"/>
+            onchange="setPron(${m.id},'gl',this.value)" style="width:32px;height:32px;font-size:14px"/>
           <span style="color:var(--muted);font-size:12px">:</span>
           <input class="score-in" type="number" min="0" max="20" value="${p.gv}" placeholder="?" ${jugado?'disabled':''}
-            onchange="setPron(${m.id},'gv',this.value)" onfocus="mostrarSaveTip()" onblur="ocultarSaveTip()" style="width:32px;height:32px;font-size:14px"/>
+            onchange="setPron(${m.id},'gv',this.value)" style="width:32px;height:32px;font-size:14px"/>
         </div>
         <!-- VISITANTE -->
         <div style="display:flex;align-items:center;gap:5px;min-width:0;">
@@ -1024,10 +1029,14 @@ function actualizarResumenPron(){
     </div>`;
 }
 
+let _autoSaveTimer = null;
 function setPron(id,campo,val){
   if(!pronLocales[id]) pronLocales[id]={gl:'',gv:''};
   pronLocales[id][campo]=val;
   checkUnsaved();
+  // Auto-guardado: espera 1.5s sin cambios y guarda solo
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(() => guardarTodos(true), 1500);
 }
 function checkUnsaved(){
   let n=0;
@@ -1038,7 +1047,7 @@ function checkUnsaved(){
   document.getElementById('save-count').textContent=n;
   document.getElementById('save-bar').classList.toggle('on',n>0);
 }
-async function guardarTodos(){
+async function guardarTodos(silencioso=false){
   if(!currentUser) return;
   const pendientes = [];
   Object.keys(pronLocales).forEach(id => {
@@ -1051,16 +1060,16 @@ async function guardarTodos(){
   if (!pendientes.length) return;
 
   const btn = document.querySelector('#save-bar .btn-primary');
-  if (btn) { btn.innerHTML = '<span class="spin"></span> Guardando...'; btn.disabled = true; }
+  if (!silencioso && btn) { btn.innerHTML = '<span class="spin"></span> Guardando...'; btn.disabled = true; }
 
   const r = await apiPost({ accion: 'guardarPronosticos', nombre: currentUser, pronosticos: pendientes });
 
-  if (btn) { btn.innerHTML = '💾 Guardar todo'; btn.disabled = false; }
+  if (!silencioso && btn) { btn.innerHTML = '💾 Guardar todo'; btn.disabled = false; }
 
   if (r?.ok) {
     pendientes.forEach(p => { pronGuardados[p.partido_id] = { gl: p.gol_l, gv: p.gol_v }; });
     checkUnsaved();
-    toast('✅ ' + r.guardados + ' pronósticos guardados');
+    toast('✅ Guardado');
   } else {
     toast(r?.mensaje || 'Error al guardar', true);
   }
