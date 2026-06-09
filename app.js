@@ -94,6 +94,12 @@ function cacheGet(key) {
 
 // ── INIT ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function(){
+  // Garantizar que el splash se oculte pase lo que pase
+  const _splash = document.getElementById('splash');
+  if (_splash) setTimeout(() => _splash.classList.add('hidden'), 3000);
+
+  try {
+
   // Mostrar datos cacheados instantáneamente
   const cachedRanking = cacheGet('ranking');
   const cachedFixture = cacheGet('fixture');
@@ -187,6 +193,13 @@ document.addEventListener('DOMContentLoaded', function(){
     } else {
       setTimeout(hideSplash, 1800);
     }
+  }
+
+  } catch(e) {
+    // Si algo falla, al menos ocultamos el splash para que la app sea usable
+    const s = document.getElementById('splash');
+    if (s) s.classList.add('hidden');
+    console.error('Init error:', e);
   }
 });
 
@@ -1414,7 +1427,7 @@ function iniciarContador() {
   const ahora   = new Date();
   const mundial = new Date(INICIO_MUNDIAL);
   const wrap    = document.getElementById('contador-wrap');
-  const label   = document.getElementById('contador-wrap').querySelector('.cnt-label');
+  if (!wrap) return;
 
   if (contadorInterval) clearInterval(contadorInterval);
 

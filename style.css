@@ -145,7 +145,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-heigh
 /* NAV */
 .nav-wrap{
   position:sticky;top:0;z-index:40;
-  background:rgba(10,11,13,0.85);backdrop-filter:blur(16px);
+  background:rgba(10,11,13,0.85);-webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
   border-bottom:1px solid var(--border);
   padding:0 16px;
 }
@@ -318,7 +318,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-heigh
 /* SAVE BAR */
 .save-bar{
   position:fixed;bottom:0;left:0;right:0;
-  background:rgba(17,19,24,0.95);backdrop-filter:blur(16px);
+  background:rgba(17,19,24,0.95);-webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
   border-top:1px solid var(--border2);
   padding:12px 20px;display:none;
   align-items:center;justify-content:space-between;z-index:50;
@@ -354,7 +354,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-heigh
 /* MODAL */
 .overlay{
   display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);
+  background:rgba(0,0,0,0.75);-webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
   z-index:100;align-items:center;justify-content:center;padding:16px;
 }
 .overlay.on{display:flex}
@@ -491,33 +491,21 @@ footer{
 body{
   background:#03050A;
 }
-/* Fondo fijo: funciona en desktop y iOS sin usar background-attachment:fixed */
-body::after{
-  content:'';
+/* Fondo fijo en div real — evita bugs de pseudo-elementos fixed en iOS Safari */
+#bg-fondo{
   position:fixed;
   inset:0;
-  z-index:-2;
+  z-index:-1;
   background-image:
+    radial-gradient(circle, rgba(255,255,255,.55) 1px, transparent 1px),
     radial-gradient(circle at 50% -6%, rgba(140,200,30,.09), transparent 32%),
     radial-gradient(circle at 15% 16%, rgba(56,189,248,.06), transparent 26%),
     linear-gradient(180deg, rgba(3,5,10,.72) 0%, rgba(6,8,16,.75) 48%, rgba(3,5,10,.82) 100%),
     url('fondo.png');
-  background-size: auto, auto, auto, cover;
-  background-position: center top, center top, center top, center center;
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 28px 28px, auto, auto, auto, cover;
+  background-position: top left, center top, center top, center top, center center;
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
   pointer-events:none;
-}
-body::before{
-  content:'';
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  opacity:.12;
-  background-image:
-    radial-gradient(circle, rgba(255,255,255,.55) 1px, transparent 1px);
-  background-size:28px 28px;
-  mask-image:linear-gradient(to bottom, black, transparent 60%);
-  z-index:-1;
 }
 .hero{
   min-height:540px;
@@ -608,7 +596,7 @@ body::before{
 }
 #contador-wrap{
   background:rgba(255,255,255,.04) !important;
-  backdrop-filter:blur(14px) saturate(1.1);
+  -webkit-backdrop-filter:blur(14px) saturate(1.1); backdrop-filter:blur(14px) saturate(1.1);
   border-color:rgba(255,255,255,.09) !important;
   box-shadow:0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.07);
   position:relative;
@@ -630,7 +618,7 @@ body::before{
 }
 .nav-wrap{
   background:rgba(5,7,11,.76);
-  backdrop-filter:blur(18px) saturate(1.2);
+  -webkit-backdrop-filter:blur(18px) saturate(1.2); backdrop-filter:blur(18px) saturate(1.2);
   box-shadow:0 12px 35px rgba(0,0,0,.22);
 }
 .nav{justify-content:center}
@@ -670,184 +658,4 @@ body::before{
 .ranking-head,.pron-head{
   background:rgba(255,255,255,.045);
 }
-.rank-row,.pron-row{
-  transition:background .16s ease, transform .16s ease;
-}
-.rank-row:hover,.pron-row:hover{
-  background:rgba(184,247,60,.045);
-}
-.rank-row.p1{
-  background:linear-gradient(90deg,rgba(184,247,60,.11),rgba(184,247,60,.025));
-}
-.rank-row.p2{
-  background:linear-gradient(90deg,rgba(255,208,96,.08),rgba(255,208,96,.02));
-}
-.rank-row.p3{
-  background:linear-gradient(90deg,rgba(205,127,50,.08),rgba(205,127,50,.02));
-}
-.avatar{
-  box-shadow:0 0 0 2px rgba(255,255,255,.07), 0 8px 18px rgba(0,0,0,.28);
-}
-.pts{
-  text-shadow:0 0 20px rgba(184,247,60,.23);
-}
-.filter-btn{
-  background:rgba(255,255,255,.045);
-}
-.filter-btn.active,.filter-btn:hover{
-  background:linear-gradient(135deg,var(--green),var(--green2));
-  box-shadow:0 8px 22px rgba(184,247,60,.18);
-}
-.match-card{
-  margin-bottom:12px;
-}
-.match-card:hover{
-  border-color:rgba(184,247,60,.24);
-  box-shadow:0 16px 45px rgba(0,0,0,.32), 0 0 0 1px rgba(184,247,60,.06);
-}
-.match-inner{
-  padding:18px 18px;
-}
-.match-flag{font-size:28px}
-.match-team-name{font-size:15px}
-.score-pill{
-  background:#0B111C;
-  border-color:rgba(255,255,255,.15);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
-}
-.match-footer{
-  background:rgba(255,255,255,.035);
-}
-.login-card{
-  border-style:solid;
-  padding:48px 24px;
-}
-.input,.field input,.score-in{
-  background:#0B111C;
-  border-color:rgba(255,255,255,.13);
-}
-.input:focus,.field input:focus,.score-in:focus{
-  border-color:rgba(184,247,60,.55);
-  box-shadow:0 0 0 4px rgba(184,247,60,.07);
-}
-.overlay{
-  background:rgba(0,0,0,.68);
-}
-.modal{
-  box-shadow:0 28px 90px rgba(0,0,0,.55);
-}
-.save-bar{
-  background:rgba(5,7,11,.86);
-}
-footer{
-  background:rgba(255,255,255,.015);
-}
-@media(max-width:640px){
-  /* Fondo más brillante en móvil */
-  body::after{
-    background-image:
-      radial-gradient(circle at 50% -6%, rgba(140,200,30,.09), transparent 32%),
-      radial-gradient(circle at 15% 16%, rgba(56,189,248,.06), transparent 26%),
-      linear-gradient(180deg, rgba(3,5,10,.50) 0%, rgba(6,8,16,.55) 48%, rgba(3,5,10,.62) 100%),
-      url('fondo.png');
-  }
-  .hero{min-height:470px;padding-top:44px}
-  .hero-title{font-size:clamp(58px,18vw,86px)}
-  .nav{justify-content:flex-start}
-  .section-title{font-size:26px}
-  .match-inner{padding:14px 12px;grid-template-columns:1fr 82px 1fr}
-  .match-flag{font-size:22px}
-  .match-team-name{font-size:12px}
-}
-
-
-
-/* =========================================================
-   REBEKA - BOTONES FIJOS SIN DESLIZAMIENTO
-   Cambia la navegación y los filtros para que todos los botones
-   queden visibles en pantalla, sin scroll horizontal.
-   ========================================================= */
-.nav-wrap{
-  padding:8px 12px;
-}
-.nav{
-  width:100%;
-  max-width:980px;
-  margin:0 auto;
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(128px,1fr));
-  gap:8px;
-  overflow:visible;
-}
-.nav-tab{
-  width:100%;
-  margin:0;
-  padding:11px 10px;
-  border-radius:12px;
-  text-align:center;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  min-height:42px;
-  background:rgba(255,255,255,.045);
-  border:1px solid rgba(255,255,255,.08);
-}
-.nav-tab.active{
-  background:linear-gradient(135deg,rgba(184,247,60,.18),rgba(184,247,60,.08));
-  border-color:rgba(184,247,60,.35);
-}
-.filter-bar{
-  display:flex;
-  flex-wrap:wrap;
-  overflow:visible;
-  gap:8px;
-  padding-bottom:0;
-}
-.filter-bar .filter-btn{
-  flex:1 1 112px;
-  text-align:center;
-  justify-content:center;
-  min-height:36px;
-}
-#filtros-grupo .filter-btn{
-  flex-basis:94px;
-}
-#filtros-jornada .filter-btn{
-  flex-basis:120px;
-}
-#view-eliminatorias .filter-bar .filter-btn{
-  flex-basis:128px;
-}
-@media(max-width:640px){
-  .nav-wrap{
-    padding:8px;
-  }
-  .nav{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:7px;
-  }
-  .nav-tab{
-    font-size:12px;
-    padding:10px 8px;
-    min-height:40px;
-  }
-  .filter-bar{
-    gap:6px;
-  }
-  .filter-bar .filter-btn{
-    flex:1 1 calc(50% - 6px);
-    padding:8px 8px;
-    font-size:11px;
-  }
-  #filtros-grupo .filter-btn{
-    flex:1 1 calc(33.333% - 6px);
-  }
-}
-@media(max-width:360px){
-  .nav-tab{
-    font-size:11px;
-  }
-  #filtros-grupo .filter-btn{
-    flex:1 1 calc(50% - 6px);
-  }
-}
+.rank-row,
