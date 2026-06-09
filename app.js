@@ -1692,3 +1692,15 @@ function ocultarSaveTip(){
   if (!tip) return;
   _saveTipTimer = setTimeout(() => tip.classList.remove('visible'), 300);
 }
+r = null;
+function mostrarSaveTip(){
+  const tip = document.getElementById('save-tip');
+  if (!tip) return;
+  clearTimeout(_saveTipTimer);
+  tip.classList.add('visible');
+}
+function ocultarSaveTip(){
+  const tip = document.getElementById('save-tip');
+  if (!tip) return;
+  _saveTipTimer = setTimeout(() => tip.classList.remove('visible'), 300);
+}
