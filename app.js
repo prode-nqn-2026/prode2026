@@ -96,7 +96,10 @@ function cacheGet(key) {
 document.addEventListener('DOMContentLoaded', function(){
   // Garantizar que el splash se oculte pase lo que pase
   const _splash = document.getElementById('splash');
-  if (_splash) setTimeout(() => _splash.classList.add('hidden'), 3000);
+  if (_splash) {
+    setTimeout(() => { _splash.classList.add('hidden'); }, 2500);
+    setTimeout(() => { if(_splash) _splash.style.display='none'; }, 3200);
+  }
 
   try {
 
@@ -186,7 +189,10 @@ document.addEventListener('DOMContentLoaded', function(){
   // Ocultar splash
   const splash = document.getElementById('splash');
   if (splash) {
-    const hideSplash = () => splash.classList.add('hidden');
+    const hideSplash = () => {
+      splash.classList.add('hidden');
+      setTimeout(() => { if(splash) splash.style.display='none'; }, 600);
+    };
     // Si hay cache lo ocultamos rápido, si no esperamos un poco más
     if (cachedRanking || cachedFixture) {
       setTimeout(hideSplash, 600);
@@ -198,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function(){
   } catch(e) {
     // Si algo falla, al menos ocultamos el splash para que la app sea usable
     const s = document.getElementById('splash');
-    if (s) s.classList.add('hidden');
+    if (s) { s.classList.add('hidden'); s.style.display='none'; }
     console.error('Init error:', e);
   }
 });
