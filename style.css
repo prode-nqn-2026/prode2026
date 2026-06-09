@@ -499,7 +499,7 @@ body{
   background-image:
     radial-gradient(circle at 50% -6%, rgba(140,200,30,.09), transparent 32%),
     radial-gradient(circle at 15% 16%, rgba(56,189,248,.06), transparent 26%),
-    linear-gradient(180deg, rgba(3,5,10,.72) 0%, rgba(6,8,16,.75) 48%, rgba(3,5,10,.82) 100%),
+    linear-gradient(180deg, rgba(3,5,10,.45) 0%, rgba(6,8,16,.50) 48%, rgba(3,5,10,.55) 100%),
     url('fondo.png');
   background-size: auto, auto, auto, cover;
   background-position: center top, center top, center top, center center;
