@@ -154,6 +154,9 @@ document.addEventListener('DOMContentLoaded', function(){
           toast('Tu sesión expiró, volvé a ingresar', true);
         }
       });
+  } else {
+    // Sin sesión: asegurarse de ocultar tabs de auth
+    actualizarHeroBtns();
   }
 
   // Cargar todo en paralelo
