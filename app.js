@@ -121,11 +121,11 @@ document.addEventListener('DOMContentLoaded', function(){
     // 2. Verificar PIN en segundo plano
     apiGet('verificarPin', '&nombre=' + encodeURIComponent(savedUser) + '&pin=' + encodeURIComponent(savedPin))
       .then(v => {
-        if (v?.ok) {
+        if ((v && v.ok)) {
           // Sesión válida — cargar foto y pronósticos
           cargarFotoPerfil(savedUser);
           apiGet('pronosticos', '&nombre=' + encodeURIComponent(savedUser)).then(data => {
-            if (data?.ok) {
+            if ((data && data.ok)) {
               pronGuardados = {};
               (data.pronosticos || []).forEach(p => {
                 pronGuardados[p.partido_id] = { gl: p.gol_l, gv: p.gol_v };
@@ -154,9 +154,9 @@ document.addEventListener('DOMContentLoaded', function(){
       apiGet('fixture'),
       apiGet('estadisticas')
     ]).then(([rankData, fixData, statsData]) => {
-      if (rankData?.ok)  { cacheSet('ranking', rankData);  renderRankingData(rankData); }
-      if (fixData?.ok)   { cacheSet('fixture', fixData);   fixtureData = fixData.partidos || []; renderFixture(fixtureData); if(currentUser) renderPron(); }
-      if (statsData?.ok) { renderEstadisticasData(statsData); }
+      if ((rankData && rankData.ok))  { cacheSet('ranking', rankData);  renderRankingData(rankData); }
+      if ((fixData && fixData.ok))   { cacheSet('fixture', fixData);   fixtureData = fixData.partidos || []; renderFixture(fixtureData); if(currentUser) renderPron(); }
+      if ((statsData && statsData.ok)) { renderEstadisticasData(statsData); }
     });
   }
 
@@ -169,8 +169,8 @@ document.addEventListener('DOMContentLoaded', function(){
   setInterval(() => {
     if (!SCRIPT_URL) return;
     Promise.all([apiGet('ranking'), apiGet('fixture')]).then(([r, f]) => {
-      if (r?.ok) { cacheSet('ranking', r); renderRankingData(r); }
-      if (f?.ok) { cacheSet('fixture', f); fixtureData = f.partidos || []; renderFixture(fixtureData); }
+      if ((r && r.ok)) { cacheSet('ranking', r); renderRankingData(r); }
+      if ((f && f.ok)) { cacheSet('fixture', f); fixtureData = f.partidos || []; renderFixture(fixtureData); }
     });
   }, CACHE_TTL);
   chequearRecordatorios();
@@ -240,7 +240,7 @@ async function verPerfil(nombre) {
 
   // Cargar datos
   const data = await apiGet('getPerfilPublico', '&nombre=' + encodeURIComponent(nombre));
-  if (!data?.ok) { document.getElementById('perfil-historial').innerHTML = '<div class="empty">Error al cargar perfil</div>'; return; }
+  if (!(data && data.ok)) { document.getElementById('perfil-historial').innerHTML = '<div class="empty">Error al cargar perfil</div>'; return; }
 
   // Foto real
   if (data.fotoUrl) {
@@ -346,7 +346,7 @@ function renderPodio(ranking) {
 function renderRankingData(data) {
   const r = data.ranking || [];
   document.getElementById('s-part').textContent = r.length;
-  if (r[0]?.ultima_act) {
+  if (r[0] && r[0].ultima_act) {
     const d = new Date(r[0].ultima_act);
     if (!isNaN(d)) {
       const dd = String(d.getDate()).padStart(2,'0');
@@ -434,7 +434,7 @@ async function cargarEliminatorias() {
   }
   // Si no hay fixture, cargar
   const data = await apiGet('fixture');
-  if (!data?.ok) return;
+  if (!(data && data.ok)) return;
   fixtureData = data.partidos || [];
   elimData = fixtureData.filter(p => RONDAS_ELIM[p.grupo]);
   renderEliminatorias(elimData);
@@ -448,7 +448,7 @@ function filtrarElim(ronda, btn) {
 }
 
 function renderEliminatorias(partidos) {
-  if (!partidos?.length) {
+  if (!(partidos && partidos.length)) {
     document.getElementById('eliminatorias-list').innerHTML = '<div class="empty"><span class="empty-icon">⚡</span>No hay partidos para mostrar</div>';
     return;
   }
@@ -475,9 +475,9 @@ function renderEliminatorias(partidos) {
         <div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:90px;">
           ${jugado||live
             ? `<div style="display:flex;align-items:center;gap:6px;">
-                <div style="width:32px;height:32px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px">${m.gol_l??'—'}</div>
+                <div style="width:32px;height:32px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px">${m.gol_l != null ? m.gol_l : '—'}</div>
                 <span style="color:var(--muted);font-size:13px">:</span>
-                <div style="width:32px;height:32px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px">${m.gol_v??'—'}</div>
+                <div style="width:32px;height:32px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px">${m.gol_v != null ? m.gol_v : '—'}</div>
                </div>
                ${live?'<span class="badge b-live" style="font-size:9px">EN VIVO</span>':'<span class="badge b-gray" style="font-size:9px">Final</span>'}`
             : `<div style="font-size:12px;font-weight:500;color:var(--white)">${formatFecha(m.fecha)}</div>
@@ -496,13 +496,13 @@ function renderEliminatorias(partidos) {
 
 async function cargarEstadisticas(){
   const data = await apiGet('estadisticas');
-  if (!data?.ok) return;
+  if (!(data && data.ok)) return;
   renderEstadisticasData(data);
 }
 
 async function cargarRanking(){
   const data = await apiGet('ranking');
-  if (!data?.ok) return;
+  if (!(data && data.ok)) return;
   cacheSet('ranking', data);
   renderRankingData(data);
 }
@@ -510,7 +510,7 @@ async function cargarRanking(){
 // ── FIXTURE ───────────────────────────────────────────────────
 async function cargarFixture(){
   const data = await apiGet('fixture');
-  if (!data?.ok) return;
+  if (!(data && data.ok)) return;
   cacheSet('fixture', data);
   fixtureData = data.partidos || [];
   renderFixture(fixtureData);
@@ -563,7 +563,7 @@ function filtrarJornada(jornada, btn) {
 }
 
 function renderFixtureJornada(partidos) {
-  if(!partidos?.length){
+  if(!(partidos && partidos.length)){
     document.getElementById('fixture-list').innerHTML='<div class="empty"><span class="empty-icon">📅</span>No hay partidos para mostrar</div>'; return;
   }
 
@@ -599,9 +599,9 @@ function renderFixtureJornada(partidos) {
           <div class="match-center">
             ${jugado||live
               ? `<div class="score-row">
-                  <div class="score-pill">${m.gol_l??'—'}</div>
+                  <div class="score-pill">${m.gol_l != null ? m.gol_l : '—'}</div>
                   <span class="score-sep">:</span>
-                  <div class="score-pill">${m.gol_v??'—'}</div>
+                  <div class="score-pill">${m.gol_v != null ? m.gol_v : '—'}</div>
                  </div>
                  ${live?'<span class="badge b-live" style="font-size:9px;margin-top:2px">EN VIVO</span>':'<span class="badge b-gray" style="font-size:9px;margin-top:2px">Final</span>'}`
               : `<div class="match-date">${formatHora(m.hora)} hs</div>
@@ -619,7 +619,7 @@ function renderFixtureJornada(partidos) {
 }
 
 function renderFixture(partidos){
-  if(!partidos?.length){
+  if(!(partidos && partidos.length)){
     document.getElementById('fixture-list').innerHTML='<div class="empty"><span class="empty-icon">📅</span>No hay partidos para mostrar</div>'; return;
   }
   // Actualizar contador de partidos jugados
@@ -655,9 +655,9 @@ function renderFixture(partidos){
         <div class="match-center">
           ${jugado||live
             ? `<div class="score-row">
-                <div class="score-pill">${m.gol_l??'—'}</div>
+                <div class="score-pill">${m.gol_l != null ? m.gol_l : '—'}</div>
                 <span class="score-sep">:</span>
-                <div class="score-pill">${m.gol_v??'—'}</div>
+                <div class="score-pill">${m.gol_v != null ? m.gol_v : '—'}</div>
                </div>
                ${live?'<span class="badge b-live" style="font-size:9px;margin-top:2px">EN VIVO</span>':'<span class="badge b-gray" style="font-size:9px;margin-top:2px">Final</span>'}`
             : `<div class="match-date">${formatFecha(m.fecha)}</div>
@@ -680,7 +680,7 @@ async function loginUser(){
   if(!n){ document.getElementById('login-nombre').focus(); return; }
   if(!pin){ toast('Ingresá tu PIN',true); document.getElementById('login-pin').focus(); return; }
   const v=await apiGet('verificarPin','&nombre='+encodeURIComponent(n)+'&pin='+encodeURIComponent(pin));
-  if(!v?.ok){ toast(v?.mensaje||'Nombre o PIN incorrecto ❌',true); return; }
+  if(!(v && v.ok)){ toast((v && v.mensaje)||'Nombre o PIN incorrecto ❌',true); return; }
   currentUser=n;
   // Guardar sesión en localStorage
   localStorage.setItem('prode_user', n);
@@ -694,7 +694,7 @@ async function loginUser(){
 
   // Verificar si está primero en el ranking — festejo
   const rankData = await apiGet('ranking');
-  if (rankData?.ok && rankData.ranking?.length > 0) {
+  if ((rankData && rankData.ok) && rankData.ranking && rankData.ranking.length > 0) {
     const primero = rankData.ranking[0];
     if (primero.nombre.toLowerCase() === n.toLowerCase() && (primero.puntos||0) > 0) {
       setTimeout(() => { lanzarConfetti(5000); mostrarFestejo(n); }, 600);
@@ -703,7 +703,7 @@ async function loginUser(){
 
   const data=await apiGet('pronosticos','&nombre='+encodeURIComponent(n));
   pronGuardados={};
-  if(data?.ok)(data.pronosticos||[]).forEach(p=>{
+  if((data && data.ok))(data.pronosticos||[]).forEach(p=>{
     pronGuardados[p.partido_id]={gl:p.gol_l,gv:p.gol_v};
     pronLocales[p.partido_id]={gl:p.gol_l,gv:p.gol_v};
   });
@@ -774,7 +774,7 @@ function renderPron(){
     const totalPartidos = g.partidos.length;
     const abiertos  = g.partidos.filter(m => !estaJugado(m)).length;
     const jugados   = totalPartidos - abiertos;
-    const pronCarg  = g.partidos.filter(m => pronLocales[m.id]?.gl !== '' && pronLocales[m.id]?.gv !== '').length;
+    const pronCarg  = g.partidos.filter(m => (pronLocales[m.id] && pronLocales[m.id].gl) !== '' && (pronLocales[m.id] && pronLocales[m.id].gv) !== '').length;
     const tieneAbiertos = abiertos > 0;
     const abrirPorDefecto = tieneAbiertos && !primeraAbierta;
     if (abrirPorDefecto) primeraAbierta = true;
@@ -1113,18 +1113,18 @@ async function guardarTodos(silencioso=false){
 
   if (!silencioso && btn) { btn.innerHTML = '💾 Guardar todo'; btn.disabled = false; }
 
-  if (r?.ok) {
+  if ((r && r.ok)) {
     pendientes.forEach(p => { pronGuardados[p.partido_id] = { gl: p.gol_l, gv: p.gol_v }; });
     checkUnsaved();
     toast('✅ Guardado');
   } else {
-    toast(r?.mensaje || 'Error al guardar', true);
+    toast((r && r.mensaje) || 'Error al guardar', true);
   }
 }
 
 // ── ESTADÍSTICAS ──────────────────────────────────────────────
 function renderStats(ranking){
-  if(!ranking?.length){
+  if(!(ranking && ranking.length)){
     document.getElementById('stats-list').innerHTML='<div class="empty"><span class="empty-icon">📊</span>Sin datos aún</div>'; return;
   }
   const maxPts=Math.max(...ranking.map(r=>r.puntos||0),1);
@@ -1158,12 +1158,12 @@ async function registrar(){
   btn.innerHTML='<span class="spin"></span> Guardando...'; btn.disabled=true;
   const data=await apiPost({accion:'registrar',nombre,pin,whatsapp:document.getElementById('reg-wa').value.trim(),email:document.getElementById('reg-email').value.trim()});
   btn.innerHTML='Registrarme →'; btn.disabled=false;
-  if(data?.ok){
+  if((data && data.ok)){
     cerrarModal('registro');
     toast('🎉 '+(data.mensaje||'¡Registrado!'));
     ['reg-nombre','reg-pin','reg-wa','reg-email'].forEach(id=>document.getElementById(id).value='');
     cargarRanking();
-  } else toast(data?.mensaje||'Error al registrar',true);
+  } else toast((data && data.mensaje)||'Error al registrar',true);
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
@@ -1187,7 +1187,7 @@ let fotoFileModal = null;
 
 async function cargarFotoPerfil(nombre) {
   const data = await apiGet('getFoto', '&nombre=' + encodeURIComponent(nombre));
-  if (data?.ok && data.url) {
+  if ((data && data.ok) && data.url) {
     localStorage.setItem('prode_foto_' + nombre, data.url);
     // Actualizar foto en el modal si está abierto
     const img = document.getElementById('modal-foto-img');
@@ -1225,14 +1225,14 @@ async function subirFotoModal() {
       fotoBase64: base64, mimeType: fotoFileModal.type
     });
     btn.innerHTML = 'Guardar foto →'; btn.disabled = false;
-    if (res?.ok) {
+    if ((res && res.ok)) {
       localStorage.setItem('prode_foto_' + currentUser, res.url);
       cerrarModal('cambiar-foto');
       fotoFileModal = null;
       toast('📸 Foto actualizada');
       cargarRanking();
     } else {
-      toast(res?.mensaje || 'Error al subir la foto', true);
+      toast((res && res.mensaje) || 'Error al subir la foto', true);
     }
   };
   reader.readAsDataURL(fotoFileModal);
@@ -1482,9 +1482,9 @@ document.addEventListener('click', e => {
 
 async function cargarDatosPerfil() {
   if (!currentUser) return;
-  const pin = document.getElementById('login-pin')?.value || document.getElementById('quick-pin')?.value || '';
+  const pin = (document.getElementById('login-pin') && document.getElementById('login-pin').value) || (document.getElementById('quick-pin') && document.getElementById('quick-pin').value) || '';
   const data = await apiGet('getPerfil', '&nombre=' + encodeURIComponent(currentUser) + '&pin=' + encodeURIComponent(pin));
-  if (data?.ok) {
+  if ((data && data.ok)) {
     document.getElementById('edit-wa').value    = data.whatsapp || '';
     document.getElementById('edit-email').value = data.email    || '';
   }
@@ -1502,12 +1502,12 @@ async function guardarPerfil() {
   let ok = 0;
   if (wa) {
     const r = await apiPost({ accion:'editarPerfil', nombre:currentUser, pin, campo:'whatsapp', valor_nuevo:wa });
-    if (r?.ok) ok++;
-    else { toast(r?.mensaje || 'Error al guardar', true); btn.innerHTML='Guardar →'; btn.disabled=false; return; }
+    if ((r && r.ok)) ok++;
+    else { toast((r && r.mensaje) || 'Error al guardar', true); btn.innerHTML='Guardar →'; btn.disabled=false; return; }
   }
   if (email) {
     const r = await apiPost({ accion:'editarPerfil', nombre:currentUser, pin, campo:'email', valor_nuevo:email });
-    if (r?.ok) ok++;
+    if ((r && r.ok)) ok++;
   }
 
   btn.innerHTML = 'Guardar →'; btn.disabled = false;
@@ -1531,7 +1531,7 @@ async function cambiarPin() {
   const res = await apiPost({ accion:'editarPerfil', nombre:currentUser, pin:pinActual, campo:'pin', pin_nuevo:pinNuevo });
   btn.innerHTML = 'Cambiar PIN →'; btn.disabled = false;
 
-  if (res?.ok) {
+  if ((res && res.ok)) {
     cerrarModal('cambiar-pin');
     ['pin-actual','pin-nuevo','pin-nuevo-confirm'].forEach(id => document.getElementById(id).value = '');
     // Actualizar PIN guardado en los campos de login
@@ -1539,7 +1539,7 @@ async function cambiarPin() {
     if (loginPin) loginPin.value = pinNuevo;
     toast('🔐 PIN cambiado correctamente');
   } else {
-    toast(res?.mensaje || 'Error al cambiar PIN', true);
+    toast((res && res.mensaje) || 'Error al cambiar PIN', true);
   }
 }
 
@@ -1554,74 +1554,4 @@ function actualizarHeroBtns() {
     if(btnLogin)    btnLogin.style.display     = 'none';
     if(btnLogueado) { btnLogueado.style.display = 'flex'; }
     if(heroNombre)  heroNombre.textContent     = currentUser;
-    const menuNombre = document.getElementById('menu-nombre-display');
-    if(menuNombre) menuNombre.textContent = currentUser;
-    // Mostrar pestañas protegidas
-    document.querySelectorAll('.nav-tab[data-auth="true"]').forEach(t => t.style.display = 'block');
-    // Si estaba en fixture o reglas, ir a ranking
-    const tabActiva = document.querySelector('.nav-tab.active');
-    if (!tabActiva || tabActiva.dataset.tab === 'fixture' || tabActiva.dataset.tab === 'reglas') {
-      switchTab('ranking');
-    }
-  } else {
-    if(btnUnirme)   btnUnirme.style.display   = 'inline-flex';
-    if(btnLogin)    btnLogin.style.display     = 'inline-flex';
-    if(btnLogueado) btnLogueado.style.display  = 'none';
-    // Ocultar pestañas protegidas y mostrar fixture
-    document.querySelectorAll('.nav-tab[data-auth="true"]').forEach(t => t.style.display = 'none');
-    switchTab('fixture');
-  }
-}
-
-function abrirLoginRapido() {
-  // Si ya está logueado, ir directo a pronósticos
-  if (currentUser) {
-    switchTab('pronosticos');
-    return;
-  }
-  abrirModal('login');
-}
-
-async function loginRapido() {
-  const n   = document.getElementById('quick-nombre').value.trim();
-  const pin = document.getElementById('quick-pin').value.trim();
-  if (!n)   { document.getElementById('quick-nombre').focus(); return; }
-  if (!pin) { toast('Ingresá tu PIN', true); return; }
-
-  const btn = document.getElementById('btn-login-rapido');
-  btn.innerHTML = '<span class="spin"></span> Verificando...';
-  btn.disabled = true;
-
-  const v = await apiGet('verificarPin', '&nombre=' + encodeURIComponent(n) + '&pin=' + encodeURIComponent(pin));
-  btn.innerHTML = 'Entrar →'; btn.disabled = false;
-
-  if (!v?.ok) { toast(v?.mensaje || 'Nombre o PIN incorrecto ❌', true); return; }
-
-  // Cerrar modal y hacer login
-  cerrarModal('login');
-  document.getElementById('login-nombre').value = n;
-  document.getElementById('login-pin').value = pin;
-  switchTab('pronosticos');
-  loginUser();
-  toast('¡Bienvenido ' + n + '! ⚽');
-}
-
-function toast(msg,err=false){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className='on'+(err?' err':'');
-  clearTimeout(t._t); t._t=setTimeout(()=>t.className='',2800);
-}
-
-let _saveTipTimer = null;
-function mostrarSaveTip(){
-  const tip = document.getElementById('save-tip');
-  if (!tip) return;
-  clearTimeout(_saveTipTimer);
-  tip.classList.add('visible');
-}
-function ocultarSaveTip(){
-  const tip = document.getElementById('save-tip');
-  if (!tip) return;
-  // pequeño delay por si el foco salta de un input al otro
-  _saveTipTimer = setTimeout(() => tip.classList.remove('visible'), 300);
-}
+    const menuNombre = d
