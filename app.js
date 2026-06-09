@@ -1608,6 +1608,11 @@ function actualizarHeroBtns() {
   const btnLogueado = document.getElementById('btn-logueado');
   const heroNombre  = document.getElementById('hero-nombre-usuario');
 
+  // Mostrar/ocultar tabs que requieren auth
+  document.querySelectorAll('.nav-tab[data-auth="true"]').forEach(t => {
+    t.style.display = currentUser ? '' : 'none';
+  });
+
   if (currentUser) {
     if(btnUnirme)   btnUnirme.style.display   = 'none';
     if(btnLogin)    btnLogin.style.display     = 'none';
