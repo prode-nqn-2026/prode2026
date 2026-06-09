@@ -710,6 +710,46 @@ async function loginUser(){
   if(!fixtureData.length) await cargarFixture(); else renderPron();
 }
 
+function abrirLoginRapido(){
+  abrirModal('login');
+}
+
+async function loginRapido(){
+  const n   = document.getElementById('quick-nombre').value.trim();
+  const pin = document.getElementById('quick-pin').value.trim();
+  if(!n){ document.getElementById('quick-nombre').focus(); return; }
+  if(!pin){ toast('Ingresá tu PIN',true); document.getElementById('quick-pin').focus(); return; }
+  const btn = document.getElementById('btn-login-rapido');
+  if(btn){ btn.innerHTML='<span class="spin"></span> Entrando...'; btn.disabled=true; }
+  const v = await apiGet('verificarPin','&nombre='+encodeURIComponent(n)+'&pin='+encodeURIComponent(pin));
+  if(btn){ btn.innerHTML='Entrar →'; btn.disabled=false; }
+  if(!(v && v.ok)){ toast((v && v.mensaje)||'Nombre o PIN incorrecto ❌',true); return; }
+  cerrarModal('login');
+  currentUser=n;
+  localStorage.setItem('prode_user',n);
+  localStorage.setItem('prode_pin',pin);
+  document.getElementById('login-area').style.display='none';
+  document.getElementById('pron-area').style.display='block';
+  document.getElementById('pron-title').textContent=n.toUpperCase();
+  document.getElementById('perfil-nombre').textContent=n;
+  cargarFotoPerfil(n);
+  actualizarHeroBtns();
+  const rankData = await apiGet('ranking');
+  if((rankData && rankData.ok) && rankData.ranking && rankData.ranking.length>0){
+    const primero=rankData.ranking[0];
+    if(primero.nombre.toLowerCase()===n.toLowerCase()&&(primero.puntos||0)>0){
+      setTimeout(()=>{ lanzarConfetti(5000); mostrarFestejo(n); },600);
+    }
+  }
+  const data=await apiGet('pronosticos','&nombre='+encodeURIComponent(n));
+  pronGuardados={};
+  if((data && data.ok))(data.pronosticos||[]).forEach(p=>{
+    pronGuardados[p.partido_id]={gl:p.gol_l,gv:p.gol_v};
+    pronLocales[p.partido_id]={gl:p.gol_l,gv:p.gol_v};
+  });
+  if(!fixtureData.length) await cargarFixture(); else renderPron();
+}
+
 function logoutUser(){
   currentUser=null; pronLocales={}; pronGuardados={};
   document.getElementById('login-area').style.display='block';
@@ -1534,6 +1574,59 @@ async function cambiarPin() {
   if ((res && res.ok)) {
     cerrarModal('cambiar-pin');
     ['pin-actual','pin-nuevo','pin-nuevo-confirm'].forEach(id => document.getElementById(id).value = '');
+    // Actualizar PIN guardado en los campos de login
+    const loginPin = document.getElementById('login-pin');
+    if (loginPin) loginPin.value = pinNuevo;
+    toast('🔐 PIN cambiado correctamente');
+  } else {
+    toast((res && res.mensaje) || 'Error al cambiar PIN', true);
+  }
+}
+
+function actualizarHeroBtns() {
+  const btnUnirme   = document.getElementById('btn-unirme');
+  const btnLogin    = document.getElementById('btn-login');
+  const btnLogueado = document.getElementById('btn-logueado');
+  const heroNombre  = document.getElementById('hero-nombre-usuario');
+
+  if (currentUser) {
+    if(btnUnirme)   btnUnirme.style.display   = 'none';
+    if(btnLogin)    btnLogin.style.display     = 'none';
+    if(btnLogueado) { btnLogueado.style.display = 'flex'; }
+    if(heroNombre)  heroNombre.textContent     = currentUser;
+    const menuNombre = document.getElementById('menu-nombre');
+    if(menuNombre) menuNombre.textContent = currentUser;
+  } else {
+    if(btnUnirme)   btnUnirme.style.display   = '';
+    if(btnLogin)    btnLogin.style.display     = '';
+    if(btnLogueado) btnLogueado.style.display  = 'none';
+    if(heroNombre)  heroNombre.textContent     = '';
+  }
+}
+
+function bienvenida(n){
+  toast('¡Bienvenido ' + n + '! ⚽');
+}
+
+function toast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='on'+(err?' err':'');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.className='',2800);
+}
+
+let _saveTipTimer = null;
+function mostrarSaveTip(){
+  const tip = document.getElementById('save-tip');
+  if (!tip) return;
+  clearTimeout(_saveTipTimer);
+  tip.classList.add('visible');
+}
+function ocultarSaveTip(){
+  const tip = document.getElementById('save-tip');
+  if (!tip) return;
+  _saveTipTimer = setTimeout(() => tip.classList.remove('visible'), 300);
+}
+nuevo-confirm'].forEach(id => document.getElementById(id).value = '');
     // Actualizar PIN guardado en los campos de login
     const loginPin = document.getElementById('login-pin');
     if (loginPin) loginPin.value = pinNuevo;
