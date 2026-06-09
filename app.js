@@ -1610,7 +1610,7 @@ function actualizarHeroBtns() {
 
   // Mostrar/ocultar tabs que requieren auth
   document.querySelectorAll('.nav-tab[data-auth="true"]').forEach(t => {
-    t.style.display = currentUser ? '' : 'none';
+    t.style.display = currentUser ? 'inline-block' : 'none';
   });
 
   if (currentUser) {
