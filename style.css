@@ -159,7 +159,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-heigh
   transition:all .15s;
 }
 .nav-tab.active{color:var(--green);border-bottom-color:var(--green)}
-.nav-tab[data-auth="true"]{display:none}
+/* tabs auth: visibilidad controlada por JS */
 .nav-tab:hover:not(.active){color:var(--white)}
 
 /* VIEWS */
