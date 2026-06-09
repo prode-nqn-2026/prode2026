@@ -1554,4 +1554,35 @@ function actualizarHeroBtns() {
     if(btnLogin)    btnLogin.style.display     = 'none';
     if(btnLogueado) { btnLogueado.style.display = 'flex'; }
     if(heroNombre)  heroNombre.textContent     = currentUser;
-    const menuNombre = d
+    const menuNombre = document.getElementById('menu-nombre');
+    if(menuNombre) menuNombre.textContent = currentUser;
+  } else {
+    if(btnUnirme)   btnUnirme.style.display   = '';
+    if(btnLogin)    btnLogin.style.display     = '';
+    if(btnLogueado) btnLogueado.style.display  = 'none';
+    if(heroNombre)  heroNombre.textContent     = '';
+  }
+}
+
+function bienvenida(n){
+  toast('¡Bienvenido ' + n + '! ⚽');
+}
+
+function toast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='on'+(err?' err':'');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.className='',2800);
+}
+
+let _saveTipTimer = null;
+function mostrarSaveTip(){
+  const tip = document.getElementById('save-tip');
+  if (!tip) return;
+  clearTimeout(_saveTipTimer);
+  tip.classList.add('visible');
+}
+function ocultarSaveTip(){
+  const tip = document.getElementById('save-tip');
+  if (!tip) return;
+  _saveTipTimer = setTimeout(() => tip.classList.remove('visible'), 300);
+}
