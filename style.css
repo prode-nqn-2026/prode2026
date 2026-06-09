@@ -149,13 +149,13 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-heigh
   border-bottom:1px solid var(--border);
   padding:0 16px;
 }
-.nav{display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.nav::-webkit-scrollbar{display:none}
+.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+
 .nav-tab{
   font-family:var(--font-b);font-size:13px;font-weight:500;
-  padding:14px 18px;border:none;background:transparent;
-  color:var(--muted);cursor:pointer;white-space:nowrap;
-  border-bottom:2px solid transparent;margin-bottom:-1px;
+  padding:12px 4px;border:none;background:transparent;
+  color:var(--muted);cursor:pointer;white-space:nowrap;text-align:center;
+  border-bottom:2px solid transparent;
   transition:all .15s;
 }
 .nav-tab.active{color:var(--green);border-bottom-color:var(--green)}
@@ -497,14 +497,13 @@ body{
   inset:0;
   z-index:-1;
   background-image:
-    radial-gradient(circle, rgba(255,255,255,.55) 1px, transparent 1px),
     radial-gradient(circle at 50% -6%, rgba(140,200,30,.09), transparent 32%),
     radial-gradient(circle at 15% 16%, rgba(56,189,248,.06), transparent 26%),
     linear-gradient(180deg, rgba(3,5,10,.72) 0%, rgba(6,8,16,.75) 48%, rgba(3,5,10,.82) 100%),
     url('fondo.png');
-  background-size: 28px 28px, auto, auto, auto, cover;
-  background-position: top left, center top, center top, center top, center center;
-  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size: auto, auto, auto, cover;
+  background-position: center top, center top, center top, center center;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
   pointer-events:none;
 }
 .hero{
@@ -624,8 +623,7 @@ body{
 .nav{justify-content:center}
 .nav-tab{
   border-radius:999px;
-  margin:8px 3px;
-  padding:10px 16px;
+  padding:10px 4px;
   border-bottom:0;
 }
 .nav-tab.active{
