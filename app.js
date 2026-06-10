@@ -196,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const hideSplash = () => {
       splash.classList.add('hidden');
       setTimeout(() => { if(splash) splash.style.display='none'; }, 600);
+      setTimeout(() => lanzarConfetti(3000), 400);
     };
     // Si hay cache lo ocultamos rápido, si no esperamos un poco más
     if (cachedRanking || cachedFixture) {
