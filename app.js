@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function(){
   const cachedRanking = cacheGet('ranking');
   const cachedFixture = cacheGet('fixture');
   if (cachedRanking) renderRankingData(cachedRanking);
-  if (cachedFixture) { fixtureData = cachedFixture; renderFixture(fixtureData); }
+  if (cachedFixture) { fixtureData = cachedFixture; renderFixture(fixtureData); iniciarCuentaRegresiva(); }
 
   // Restaurar sesión guardada — instantáneo primero, verificar después
   const savedUser = localStorage.getItem('prode_user');
@@ -367,21 +367,63 @@ function renderPodio(ranking) {
   });
 }
 
+let _cuentaInterval = null;
+function iniciarCuentaRegresiva() {
+  const el = document.getElementById('s-proximo');
+  if (!el) return;
+  if (_cuentaInterval) clearInterval(_cuentaInterval);
+
+  function proximoPartido() {
+    const ahora = new Date();
+    // Buscar el próximo partido NS (no jugado, no EN JUEGO)
+    let proximo = null;
+    for (const m of fixtureData) {
+      if (m.estado === 'FT' || m.estado === 'EN JUEGO') continue;
+      if (!m.fecha || !m.hora) continue;
+      try {
+        const [dia, mes, anio] = m.fecha.split('/');
+        const [hh, mm] = m.hora.split(':');
+        const fecha = new Date(parseInt(anio), parseInt(mes)-1, parseInt(dia), parseInt(hh), parseInt(mm), 0);
+        fecha.setHours(fecha.getHours() + 3); // AR → UTC
+        if (fecha > ahora) {
+          if (!proximo || fecha < proximo) proximo = fecha;
+        }
+      } catch(e) {}
+    }
+    return proximo;
+  }
+
+  function tick() {
+    // Si hay partido EN JUEGO, mostrar eso
+    const enJuego = fixtureData.some(m => m.estado === 'EN JUEGO');
+    if (enJuego) { el.textContent = '⚽ EN JUEGO'; return; }
+
+    const proximo = proximoPartido();
+    if (!proximo) { el.textContent = '—'; return; }
+
+    const diff = proximo - new Date();
+    if (diff <= 0) { el.textContent = '¡Ya!'; return; }
+
+    const dias  = Math.floor(diff / 86400000);
+    const horas = Math.floor((diff % 86400000) / 3600000);
+    const mins  = Math.floor((diff % 3600000) / 60000);
+    const segs  = Math.floor((diff % 60000) / 1000);
+
+    const hh = String(horas).padStart(2,'0');
+    const mm = String(mins).padStart(2,'0');
+    const ss = String(segs).padStart(2,'0');
+
+    el.textContent = dias > 0 ? `${dias}d ${hh}:${mm}:${ss}` : `${hh}:${mm}:${ss}`;
+  }
+
+  tick();
+  _cuentaInterval = setInterval(tick, 1000);
+}
+
 function renderRankingData(data) {
   const r = data.ranking || [];
   document.getElementById('s-part').textContent = r.length;
-  if (r[0] && r[0].ultima_act) {
-    const d = new Date(r[0].ultima_act);
-    if (!isNaN(d)) {
-      const dd = String(d.getDate()).padStart(2,'0');
-      const mm = String(d.getMonth()+1).padStart(2,'0');
-      const hh = String(d.getHours()).padStart(2,'0');
-      const min = String(d.getMinutes()).padStart(2,'0');
-      document.getElementById('s-ultima').textContent = `${dd}/${mm} ${hh}:${min}`;
-    } else {
-      document.getElementById('s-ultima').textContent = r[0].ultima_act;
-    }
-  }
+  iniciarCuentaRegresiva();
   renderPozo(r.length);
   renderPodio(r);
   if (!r.length) {
