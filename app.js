@@ -29,6 +29,7 @@ function switchTab(tab){
     view.style.animation='';
   }
   if(tab==='estadisticas') cargarEstadisticas();
+  if(tab==='pronosticos' && currentUser) cargarEnVivo();
 }
 
 // ── CÓDIGO PRINCIPAL ──────────────────────────────────────────
@@ -520,6 +521,74 @@ async function cargarEstadisticas(){
   const data = await apiGet('estadisticas');
   if (!(data && data.ok)) return;
   renderEstadisticasData(data);
+}
+
+async function cargarEnVivo(){
+  const el = document.getElementById('en-vivo-area');
+  if (!el) return;
+  const data = await apiGet('pronosticosEnJuego');
+  if (!(data && data.ok) || !data.partidos.length) {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <span style="display:inline-block;width:10px;height:10px;background:#e74c3c;border-radius:50%;animation:pulse 1s infinite;"></span>
+      <span style="font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--accent)">EN VIVO</span>
+    </div>
+    ${data.partidos.map(p => renderPartidoEnVivo(p)).join('')}
+  `;
+}
+
+function renderPartidoEnVivo(p){
+  const prons = p.pronosticos;
+  if (!prons.length) return '';
+
+  // Determinar quién va ganando con su pronóstico actualmente
+  const glActual = Number(p.gol_l), gvActual = Number(p.gol_v);
+
+  const filas = prons.map(pr => {
+    const gl = Number(pr.gol_l), gv = Number(pr.gol_v);
+    // ¿coincide el marcador parcial o sería exacto?
+    const exacto  = gl === glActual && gv === gvActual;
+    const signo = gl > gv ? 'L' : gv > gl ? 'V' : 'E';
+    const signoActual = glActual > gvActual ? 'L' : gvActual > glActual ? 'V' : 'E';
+    const acierto1x2 = signo === signoActual;
+    const badge = exacto
+      ? `<span style="background:#27ae60;color:#fff;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;">✓ Exacto</span>`
+      : acierto1x2
+      ? `<span style="background:#f39c12;color:#fff;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;">~ 1X2</span>`
+      : '';
+    return `<tr>
+      <td style="padding:6px 8px;font-size:13px;">${pr.nombre}</td>
+      <td style="padding:6px 8px;text-align:center;font-weight:700;font-size:14px;">${gl}-${gv}</td>
+      <td style="padding:6px 8px;text-align:right;">${badge}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <div style="background:var(--card);border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid rgba(255,255,255,.08);">
+      <div style="text-align:center;margin-bottom:10px;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">${p.jornada || ''}</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+          <span style="font-size:13px;font-weight:600;">${p.local}</span>
+          <span style="font-size:22px;font-weight:800;color:var(--accent);min-width:54px;text-align:center;">${glActual}-${gvActual}</span>
+          <span style="font-size:13px;font-weight:600;">${p.visitante}</span>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;border-top:1px solid rgba(255,255,255,.07);">
+        <thead>
+          <tr style="color:var(--muted);font-size:11px;text-transform:uppercase;">
+            <th style="padding:5px 8px;text-align:left;font-weight:600;">Jugador</th>
+            <th style="padding:5px 8px;text-align:center;font-weight:600;">Pronóstico</th>
+            <th style="padding:5px 8px;"></th>
+          </tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>
+    </div>
+  `;
 }
 
 async function cargarRanking(){
