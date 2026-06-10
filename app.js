@@ -950,7 +950,8 @@ function renderPron(){
     const rowsEl = document.getElementById('rows-' + g.key);
     rowsEl.innerHTML = g.partidos.map(m=>{
     const p=pronLocales[m.id]||{gl:'',gv:''};
-    const jugado = estaJugado(m);
+    const jugado   = estaJugado(m);
+    const bloqueado = !jugado && estaBloqueado(m);
     const fl=flag(m.local), fv=flag(m.visitante);
 
     // Calcular resultado del pronóstico
@@ -982,6 +983,9 @@ function renderPron(){
       resultStyle='background:rgba(255,85,85,0.04);border-left:3px solid var(--red)';
       const rl=parseInt(m.gol_l)||0, rv=parseInt(m.gol_v)||0;
       resHtml=`<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:3px">Real: ${rl} - ${rv}</div>`;
+    } else if(bloqueado){
+      badge='<span class="badge" style="font-size:10px;background:rgba(255,255,255,.10);color:var(--muted)">🔒 Cerrado</span>';
+      resultStyle='';
     } else if(!jugado){
       badge='<span class="badge b-green" style="font-size:10px">Abierto</span>';
       resultStyle='';
@@ -1001,11 +1005,13 @@ function renderPron(){
         </div>
         <!-- MARCADOR -->
         <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
-          <input class="score-in" type="number" min="0" max="20" value="${p.gl}" placeholder="?" ${jugado?'disabled':''}
-            oninput="setPron(${m.id},'gl',this.value)" onchange="setPron(${m.id},'gl',this.value)" style="width:32px;height:32px;font-size:14px"/>
-          <span style="color:var(--muted);font-size:12px">:</span>
-          <input class="score-in" type="number" min="0" max="20" value="${p.gv}" placeholder="?" ${jugado?'disabled':''}
-            oninput="setPron(${m.id},'gv',this.value)" onchange="setPron(${m.id},'gv',this.value)" style="width:32px;height:32px;font-size:14px"/>
+          <input class="score-in" type="number" min="0" max="20" value="${p.gl}" placeholder="?" ${jugado||bloqueado?'disabled':''}
+            oninput="setPron(${m.id},'gl',this.value)" onchange="setPron(${m.id},'gl',this.value)"
+            style="width:32px;height:32px;font-size:14px;${bloqueado?'opacity:.45;cursor:not-allowed':''}"/>
+          <span style="color:var(--muted);font-size:12px">${bloqueado?'🔒':':'}</span>
+          <input class="score-in" type="number" min="0" max="20" value="${p.gv}" placeholder="?" ${jugado||bloqueado?'disabled':''}
+            oninput="setPron(${m.id},'gv',this.value)" onchange="setPron(${m.id},'gv',this.value)"
+            style="width:32px;height:32px;font-size:14px;${bloqueado?'opacity:.45;cursor:not-allowed':''}"/>
         </div>
         <!-- VISITANTE -->
         <div style="display:flex;align-items:center;gap:5px;min-width:0;">
@@ -1148,28 +1154,31 @@ function abreviar(nombre) {
 }
 
 function estaJugado(m) {
-  // 1. Si la API ya dice que terminó
   if (m.estado === 'FT' || m.estado === '1H' || m.estado === '2H' || m.estado === 'HT' || m.estado === 'ET' || m.estado === 'P') return true;
-  // 2. Si tiene goles cargados
-  if (m.gol_l !== '' && m.gol_l !== undefined && m.gol_l !== null && m.gol_l !== '') return true;
-  // 3. Verificar por fecha y hora exacta (bloqueo preciso)
+  if (m.gol_l !== '' && m.gol_l !== undefined && m.gol_l !== null) return true;
   if (!m.fecha || !m.hora) return false;
   try {
-    const partes = m.fecha.split('/'); // dd/MM/yyyy
-    if (partes.length !== 3) return false;
-    const [dia, mes, anio] = partes;
+    const [dia, mes, anio] = m.fecha.split('/');
     const [hh, mm] = m.hora.split(':');
-    // Hora Argentina (UTC-3)
-    const fechaPartido = new Date(
-      parseInt(anio), parseInt(mes)-1, parseInt(dia),
-      parseInt(hh), parseInt(mm), 0
-    );
-    // Convertir a UTC+0 sumando 3 horas (Argentina es UTC-3)
+    const fechaPartido = new Date(parseInt(anio), parseInt(mes)-1, parseInt(dia), parseInt(hh), parseInt(mm), 0);
     fechaPartido.setHours(fechaPartido.getHours() + 3);
     return new Date() >= fechaPartido;
-  } catch(e) {
-    return false;
-  }
+  } catch(e) { return false; }
+}
+
+// Bloqueado = EN JUEGO, o faltan menos de 5 min para el inicio
+function estaBloqueado(m) {
+  if (estaJugado(m)) return false; // ya jugado se maneja aparte
+  if (m.estado === 'EN JUEGO') return true;
+  if (!m.fecha || !m.hora) return false;
+  try {
+    const [dia, mes, anio] = m.fecha.split('/');
+    const [hh, mm] = m.hora.split(':');
+    const fechaPartido = new Date(parseInt(anio), parseInt(mes)-1, parseInt(dia), parseInt(hh), parseInt(mm), 0);
+    fechaPartido.setHours(fechaPartido.getHours() + 3);
+    const diffMin = (fechaPartido - new Date()) / 60000;
+    return diffMin >= 0 && diffMin < 5;
+  } catch(e) { return false; }
 }
 
 function actualizarResumenPron(){
