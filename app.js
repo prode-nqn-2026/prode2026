@@ -1703,7 +1703,10 @@ function actualizarHeroBtns() {
     const menuNombre = document.getElementById('menu-nombre');
     if(menuNombre) menuNombre.textContent = currentUser;
   } else {
-    if(btnUnirme)   btnUnirme.style.display   = '';
+    // Ocultar "Unirme" a partir del 11/06/2026 12:00 hora Argentina (UTC-3 = 15:00 UTC)
+    const cierreRegistro = new Date(Date.UTC(2026, 5, 11, 15, 0, 0)); // 11 jun 2026 12:00 AR
+    const registroCerrado = new Date() >= cierreRegistro;
+    if(btnUnirme)   btnUnirme.style.display   = registroCerrado ? 'none' : '';
     if(btnLogin)    btnLogin.style.display     = '';
     if(btnLogueado) btnLogueado.style.display  = 'none';
     if(heroNombre)  heroNombre.textContent     = '';
