@@ -1162,6 +1162,8 @@ function abreviar(nombre) {
 }
 
 function estaJugado(m) {
+  // EN JUEGO = bloqueado pero no terminado, no cuenta como jugado
+  if (m.estado === 'EN JUEGO') return false;
   if (m.estado === 'FT' || m.estado === '1H' || m.estado === '2H' || m.estado === 'HT' || m.estado === 'ET' || m.estado === 'P') return true;
   if (m.gol_l !== '' && m.gol_l !== undefined && m.gol_l !== null) return true;
   if (!m.fecha || !m.hora) return false;
