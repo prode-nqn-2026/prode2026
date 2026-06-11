@@ -1169,7 +1169,6 @@ function estaJugado(m) {
     const [dia, mes, anio] = m.fecha.split('/');
     const [hh, mm] = m.hora.split(':');
     const fechaPartido = new Date(parseInt(anio), parseInt(mes)-1, parseInt(dia), parseInt(hh), parseInt(mm), 0);
-    fechaPartido.setHours(fechaPartido.getHours() + 3);
     return new Date() >= fechaPartido;
   } catch(e) { return false; }
 }
@@ -1182,8 +1181,8 @@ function estaBloqueado(m) {
   try {
     const [dia, mes, anio] = m.fecha.split('/');
     const [hh, mm] = m.hora.split(':');
+    // Horario en hora Argentina — comparación directa con el dispositivo (también en AR)
     const fechaPartido = new Date(parseInt(anio), parseInt(mes)-1, parseInt(dia), parseInt(hh), parseInt(mm), 0);
-    fechaPartido.setHours(fechaPartido.getHours() + 3);
     const diffMin = (fechaPartido - new Date()) / 60000;
     return diffMin >= 0 && diffMin < 5;
   } catch(e) { return false; }
