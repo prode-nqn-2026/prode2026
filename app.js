@@ -599,6 +599,13 @@ async function cargarRanking(){
   renderRankingData(data);
 }
 
+// Refrescar ranking y fixture cada 5 min mientras la app está visible
+setInterval(() => {
+  if (document.visibilityState === 'hidden') return;
+  cargarRanking();
+  cargarFixture();
+}, 5 * 60 * 1000);
+
 // ── FIXTURE ───────────────────────────────────────────────────
 async function cargarFixture(){
   const data = await apiGet('fixture');
