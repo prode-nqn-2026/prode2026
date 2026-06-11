@@ -332,8 +332,8 @@ function renderPozo(participantes) {
   const INSCRIPCION = 30000;
   const pozo = participantes * INSCRIPCION;
   document.getElementById('pozo-total').textContent = formatPesos(pozo);
-  document.getElementById('premio-1').textContent   = formatPesos(pozo * 0.60);
-  document.getElementById('premio-2').textContent   = formatPesos(pozo * 0.30);
+  document.getElementById('premio-1').textContent   = formatPesos(pozo * 0.70);
+  document.getElementById('premio-2').textContent   = formatPesos(pozo * 0.20);
   document.getElementById('premio-3').textContent   = formatPesos(pozo * 0.10);
 }
 
@@ -344,8 +344,8 @@ function renderPodio(ranking) {
   wrap.style.display = 'block';
 
   const podioData = [
-    { el: 'podio-1', p: conPuntos[0], medal: '🥇', color: '#FFD060', altura: '100px', prize: '60%' },
-    { el: 'podio-2', p: conPuntos[1], medal: '🥈', color: '#C0C0C0', altura: '80px',  prize: '30%' },
+    { el: 'podio-1', p: conPuntos[0], medal: '🥇', color: '#FFD060', altura: '100px', prize: '70%' },
+    { el: 'podio-2', p: conPuntos[1], medal: '🥈', color: '#C0C0C0', altura: '80px',  prize: '20%' },
     { el: 'podio-3', p: conPuntos[2], medal: '🥉', color: '#CD7F32', altura: '60px',  prize: '10%' },
   ];
 
