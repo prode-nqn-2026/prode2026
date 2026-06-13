@@ -32,15 +32,8 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js').then(reg => {
-        // Cuando hay una nueva versión instalada, recargar la página
-        reg.addEventListener('updatefound', () => {
-          const newSW = reg.installing;
-          newSW.addEventListener('statechange', () => {
-            if (newSW.state === 'activated') {
-              window.location.reload();
-            }
-          });
-        });
+        // Forzar chequeo de nueva versión cada vez que abre la app
+        reg.update();
       }).catch(() => {});
       // Si el controlador cambia (nuevo SW tomó control), recargar
       navigator.serviceWorker.addEventListener('controllerchange', () => {

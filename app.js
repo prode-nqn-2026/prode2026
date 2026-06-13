@@ -144,8 +144,8 @@ document.addEventListener('DOMContentLoaded', function(){
               if (fixtureData.length) renderPron();
             }
           });
-        } else {
-          // PIN inválido — cerrar sesión silenciosamente
+        } else if (v !== null) {
+          // PIN inválido (respuesta del servidor) — cerrar sesión
           currentUser = null;
           localStorage.removeItem('prode_user');
           localStorage.removeItem('prode_pin');
@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', function(){
           actualizarHeroBtns();
           toast('Tu sesión expiró, volvé a ingresar', true);
         }
+        // Si v === null fue error de red → mantener sesión sin tocar nada
       });
   } else {
     // Sin sesión: asegurarse de ocultar tabs de auth
