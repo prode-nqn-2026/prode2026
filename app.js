@@ -370,18 +370,6 @@ function renderPodio(ranking) {
 function renderRankingData(data) {
   const r = data.ranking || [];
   document.getElementById('s-part').textContent = r.length;
-  if (r[0] && r[0].ultima_act) {
-    const d = new Date(r[0].ultima_act);
-    if (!isNaN(d)) {
-      const dd = String(d.getDate()).padStart(2,'0');
-      const mm = String(d.getMonth()+1).padStart(2,'0');
-      const hh = String(d.getHours()).padStart(2,'0');
-      const min = String(d.getMinutes()).padStart(2,'0');
-      document.getElementById('s-ultima').textContent = `${dd}/${mm} ${hh}:${min}`;
-    } else {
-      document.getElementById('s-ultima').textContent = r[0].ultima_act;
-    }
-  }
   renderPozo(r.length);
   renderPodio(r);
   if (!r.length) {
@@ -721,9 +709,11 @@ function renderFixture(partidos){
   if(!(partidos && partidos.length)){
     document.getElementById('fixture-list').innerHTML='<div class="empty"><span class="empty-icon">📅</span>No hay partidos para mostrar</div>'; return;
   }
-  // Actualizar contador de partidos jugados
+  // Actualizar contador de partidos jugados y restantes
   const jugados = partidos.filter(m => m.estado === 'FT').length;
   document.getElementById('s-jugados').textContent = jugados;
+  const elRestantes = document.getElementById('s-restantes');
+  if (elRestantes) elRestantes.textContent = Math.max(0, partidos.length - jugados);
   const RONDAS_LABELS_FIXTURE = {
     'OCTAVOS':'⚡ OCTAVOS DE FINAL',
     'CUARTOS':'🔥 CUARTOS DE FINAL',
