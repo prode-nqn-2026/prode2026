@@ -980,7 +980,7 @@ function renderPron(){
           resultStyle='background:rgba(255,208,96,0.05);border-left:3px solid var(--gold)';
         } else {
           // Error ❌
-          badge='<span class="badge b-red" style="font-size:10px">❌ Error</span>';
+          badge='<span class="badge b-red" style="font-size:10px">❌ Errado</span>';
           resultStyle='background:rgba(255,85,85,0.04);border-left:3px solid var(--red)';
         }
       }
