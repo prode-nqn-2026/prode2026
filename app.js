@@ -128,34 +128,19 @@ document.addEventListener('DOMContentLoaded', function(){
     const cachedFoto = localStorage.getItem('prode_foto_' + savedUser);
     if (cachedFoto) mostrarFoto(cachedFoto);
 
-    // 2. Verificar PIN en segundo plano
-    apiGet('verificarPin', '&nombre=' + encodeURIComponent(savedUser) + '&pin=' + encodeURIComponent(savedPin))
-      .then(v => {
-        if ((v && v.ok)) {
-          // Sesión válida — cargar foto y pronósticos
-          cargarFotoPerfil(savedUser);
-          apiGet('pronosticos', '&nombre=' + encodeURIComponent(savedUser)).then(data => {
-            if ((data && data.ok)) {
-              pronGuardados = {};
-              (data.pronosticos || []).forEach(p => {
-                pronGuardados[p.partido_id] = { gl: p.gol_l, gv: p.gol_v };
-                pronLocales[p.partido_id]   = { gl: p.gol_l, gv: p.gol_v };
-              });
-              if (fixtureData.length) renderPron();
-            }
-          });
-        } else if (v !== null) {
-          // PIN inválido (respuesta del servidor) — cerrar sesión
-          currentUser = null;
-          localStorage.removeItem('prode_user');
-          localStorage.removeItem('prode_pin');
-          document.getElementById('login-area').style.display = 'block';
-          document.getElementById('pron-area').style.display  = 'none';
-          actualizarHeroBtns();
-          toast('Tu sesión expiró, volvé a ingresar', true);
-        }
-        // Si v === null fue error de red → mantener sesión sin tocar nada
-      });
+    // 2. Cargar foto y pronósticos en segundo plano — sin verificar PIN
+    //    (solo el logout explícito cierra la sesión)
+    cargarFotoPerfil(savedUser);
+    apiGet('pronosticos', '&nombre=' + encodeURIComponent(savedUser)).then(data => {
+      if ((data && data.ok)) {
+        pronGuardados = {};
+        (data.pronosticos || []).forEach(p => {
+          pronGuardados[p.partido_id] = { gl: p.gol_l, gv: p.gol_v };
+          pronLocales[p.partido_id]   = { gl: p.gol_l, gv: p.gol_v };
+        });
+        if (fixtureData.length) renderPron();
+      }
+    });
   } else {
     // Sin sesión: asegurarse de ocultar tabs de auth
     actualizarHeroBtns();
