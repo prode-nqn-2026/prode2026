@@ -1334,11 +1334,13 @@ async function guardarTodos(silencioso=false){
 
 // ── ESTADÍSTICAS ──────────────────────────────────────────────
 function renderStats(ranking){
+  const el = document.getElementById('stats-list');
+  if (!el) return;
   if(!(ranking && ranking.length)){
-    document.getElementById('stats-list').innerHTML='<div class="empty"><span class="empty-icon">📊</span>Sin datos aún</div>'; return;
+    el.innerHTML='<div class="empty"><span class="empty-icon">📊</span>Sin datos aún</div>'; return;
   }
   const maxPts=Math.max(...ranking.map(r=>r.puntos||0),1);
-  document.getElementById('stats-list').innerHTML=ranking.map((p,i)=>{
+  el.innerHTML=ranking.map((p,i)=>{
     const av      = AVATARS[i%AVATARS.length];
     const ini     = p.nombre.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
     const pct     = Math.round((p.puntos||0)/maxPts*100);
