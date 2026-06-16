@@ -670,6 +670,15 @@ async function cargarFixture(){
 let modoFixture = 'jornada';
 
 function renderFixtureConModo(partidos) {
+  // Contadores siempre con el fixture completo
+  const todos = fixtureData.length ? fixtureData : partidos;
+  const jugados = todos.filter(m => m.estado === 'FT').length;
+  const elJugados = document.getElementById('s-jugados');
+  const elRestantes = document.getElementById('s-restantes');
+  if (elJugados) elJugados.textContent = jugados;
+  if (elRestantes) elRestantes.textContent = Math.max(0, todos.length - jugados);
+  actualizarIndicadorEnVivo(todos.some(m => m.estado === 'EN JUEGO'));
+
   if (modoFixture === 'jornada') renderFixtureJornada(partidos);
   else if (modoFixture === 'grupo') renderFixture(partidos);
   // 'elim' se maneja aparte con cargarEliminatorias()
@@ -778,13 +787,6 @@ function renderFixture(partidos){
   if(!(partidos && partidos.length)){
     document.getElementById('fixture-list').innerHTML='<div class="empty"><span class="empty-icon">📅</span>No hay partidos para mostrar</div>'; return;
   }
-  // Actualizar contador de partidos jugados y restantes
-  const jugados = partidos.filter(m => m.estado === 'FT').length;
-  document.getElementById('s-jugados').textContent = jugados;
-  const elRestantes = document.getElementById('s-restantes');
-  if (elRestantes) elRestantes.textContent = Math.max(0, partidos.length - jugados);
-  // Indicador EN VIVO en el tab
-  actualizarIndicadorEnVivo(partidos.some(m => m.estado === 'EN JUEGO'));
   const RONDAS_LABELS_FIXTURE = {
     'OCTAVOS':'⚡ OCTAVOS DE FINAL',
     'CUARTOS':'🔥 CUARTOS DE FINAL',
