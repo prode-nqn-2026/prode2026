@@ -108,7 +108,10 @@ document.addEventListener('DOMContentLoaded', function(){
   const cachedRanking = cacheGet('ranking');
   const cachedFixture = cacheGet('fixture');
   if (cachedRanking) renderRankingData(cachedRanking);
-  if (cachedFixture) { fixtureData = cachedFixture; renderFixtureConModo(fixtureData); }
+  if (cachedFixture) {
+    fixtureData = Array.isArray(cachedFixture) ? cachedFixture : (cachedFixture.partidos || []);
+    if (fixtureData.length) renderFixtureConModo(fixtureData);
+  }
 
   // Restaurar sesión guardada — instantáneo primero, verificar después
   const savedUser = localStorage.getItem('prode_user');
@@ -159,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function(){
       apiGet('fixture')
     ]).then(([rankData, fixData]) => {
       if ((rankData && rankData.ok))  { cacheSet('ranking', rankData);  renderRankingData(rankData); }
-      if ((fixData && fixData.ok))   { cacheSet('fixture', fixData);   fixtureData = fixData.partidos || []; renderFixtureConModo(fixtureData); if(currentUser) renderPron(); }
+      if ((fixData && fixData.ok))   { fixtureData = fixData.partidos || []; cacheSet('fixture', fixtureData); renderFixtureConModo(fixtureData); if(currentUser) renderPron(); }
     });
   }
 
@@ -661,8 +664,8 @@ function agendarProximoPoll() {
 async function cargarFixture(){
   const data = await apiGet('fixture');
   if (!(data && data.ok)) return;
-  cacheSet('fixture', data);
   fixtureData = data.partidos || [];
+  cacheSet('fixture', fixtureData);
   renderFixtureConModo(fixtureData);
   if (currentUser) renderPron();
 }
