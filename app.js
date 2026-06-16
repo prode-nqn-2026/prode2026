@@ -179,14 +179,7 @@ document.addEventListener('DOMContentLoaded', function(){
   });
   iniciarContador();
 
-  // Auto-refresh cada 5 minutos
-  setInterval(() => {
-    if (!SCRIPT_URL) return;
-    Promise.all([apiGet('ranking'), apiGet('fixture')]).then(([r, f]) => {
-      if ((r && r.ok)) { cacheSet('ranking', r); renderRankingData(r); }
-      if ((f && f.ok)) { cacheSet('fixture', f); fixtureData = f.partidos || []; renderFixture(fixtureData); }
-    });
-  }, CACHE_TTL);
+  agendarProximoPoll();
   chequearRecordatorios();
   // Chequear cada 30 minutos
   setInterval(chequearRecordatorios, 30 * 60 * 1000);
@@ -588,12 +581,21 @@ async function cargarRanking(){
   renderRankingData(data);
 }
 
-// Refrescar ranking y fixture cada 5 min mientras la app está visible
-setInterval(() => {
-  if (document.visibilityState === 'hidden') return;
-  cargarRanking();
-  cargarFixture();
-}, 5 * 60 * 1000);
+// Polling inteligente: 30 seg si hay EN JUEGO, 5 min si no
+let _pollTimer = null;
+function agendarProximoPoll() {
+  if (_pollTimer) clearTimeout(_pollTimer);
+  const hayEnJuego = fixtureData.some(m => m.estado === 'EN JUEGO');
+  const delay = hayEnJuego ? 30 * 1000 : 5 * 60 * 1000;
+  _pollTimer = setTimeout(async () => {
+    if (!SCRIPT_URL || document.visibilityState === 'hidden') {
+      agendarProximoPoll();
+      return;
+    }
+    await Promise.all([cargarRanking(), cargarFixture()]);
+    agendarProximoPoll();
+  }, delay);
+}
 
 // ── FIXTURE ───────────────────────────────────────────────────
 async function cargarFixture(){
