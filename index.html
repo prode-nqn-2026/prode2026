@@ -130,9 +130,9 @@
 <div class="nav-wrap">
   <nav class="nav">
     <button class="nav-tab" data-tab="ranking" data-auth="true" onclick="switchTab('ranking')">🏆 Ranking</button>
-    <button class="nav-tab active" data-tab="fixture" onclick="switchTab('fixture')">📅 Fixture</button>
+    <button class="nav-tab" data-tab="fixture" onclick="switchTab('fixture')">📅 Fixture</button>
+    <button class="nav-tab" data-tab="envivo" onclick="switchTab('envivo')">🔴 En Vivo</button>
     <button class="nav-tab" data-tab="pronosticos" data-auth="true" onclick="switchTab('pronosticos')">📝 Pronósticos</button>
-    <button class="nav-tab" data-tab="estadisticas" data-auth="true" onclick="switchTab('estadisticas')">📊 Estadísticas</button>
     <button class="nav-tab" data-tab="reglas" onclick="switchTab('reglas')">📋 Reglas</button>
     <button class="nav-tab" data-tab="tyc" onclick="switchTab('tyc')">📄 Términos</button>
   </nav>
@@ -208,6 +208,11 @@
   </div>
 </section>
 
+<!-- EN VIVO -->
+<section id="view-envivo" class="view">
+  <div id="envivo-tab-content"></div>
+</section>
+
 <!-- FIXTURE -->
 <section id="view-fixture" class="view active">
   <div class="section-hdr">
@@ -216,13 +221,13 @@
   </div>
   <!-- Selector de modo -->
   <div style="display:flex;gap:6px;margin-bottom:10px;">
-    <button class="filter-btn active" id="modo-grupo-btn" onclick="setModoFixture('grupo',this)">Por grupo</button>
-    <button class="filter-btn" id="modo-jornada-btn" onclick="setModoFixture('jornada',this)">Por jornada</button>
+    <button class="filter-btn" id="modo-grupo-btn" onclick="setModoFixture('grupo',this)">Por grupo</button>
+    <button class="filter-btn active" id="modo-jornada-btn" onclick="setModoFixture('jornada',this)">Por jornada</button>
     <button class="filter-btn" id="modo-elim-btn" onclick="setModoFixture('elim',this)">⚡ Eliminatorias</button>
   </div>
 
   <!-- Filtros por grupo -->
-  <div class="filter-bar" id="filtros-grupo">
+  <div class="filter-bar" id="filtros-grupo" style="display:none">
     <button class="filter-btn active" onclick="filtrar('',this)">Todos</button>
     <button class="filter-btn" onclick="filtrar('A',this)">Grupo A</button>
     <button class="filter-btn" onclick="filtrar('B',this)">Grupo B</button>
@@ -240,7 +245,7 @@
   </div>
 
   <!-- Filtros por jornada -->
-  <div class="filter-bar" id="filtros-jornada" style="display:none">
+  <div class="filter-bar" id="filtros-jornada">
     <button class="filter-btn active" onclick="filtrarJornada(0,this)">Todas</button>
     <button class="filter-btn" onclick="filtrarJornada(1,this)">Jornada 1</button>
     <button class="filter-btn" onclick="filtrarJornada(2,this)">Jornada 2</button>
@@ -298,29 +303,6 @@
   </div>
 </section>
 
-<!-- ESTADÍSTICAS -->
-<section id="view-estadisticas" class="view">
-  <div class="section-hdr">
-    <div class="section-title">ESTADÍSTICAS</div>
-    <button class="btn btn-ghost btn-sm" onclick="cargarEstadisticas()">↻ Actualizar</button>
-  </div>
-
-  <!-- MEJOR POR JORNADA -->
-  <div style="margin-bottom:20px">
-    <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">🏅 Mejor pronosticador por jornada</div>
-    <div id="mejor-jornada-list">
-      <div class="empty"><span class="empty-icon">🏅</span>Los datos aparecerán cuando comiencen los partidos</div>
-    </div>
-  </div>
-
-  <!-- RANKING GENERAL BARRAS -->
-  <div>
-    <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">📊 Puntos acumulados</div>
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px">
-      <div id="stats-list"><div class="empty"><span class="empty-icon">📊</span>Cargando estadísticas...</div></div>
-    </div>
-  </div>
-</section>
 
 <!-- SAVE BAR -->
 <div class="save-bar" id="save-bar">

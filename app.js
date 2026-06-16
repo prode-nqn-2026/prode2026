@@ -23,13 +23,13 @@ function switchTab(tab){
   const view=document.getElementById('view-'+tab);
   if(view){
     view.classList.add('active');
-    // Re-trigger animación al cambiar de sección
     view.style.animation='none';
-    view.offsetHeight; // reflow
+    view.offsetHeight;
     view.style.animation='';
   }
-  if(tab==='estadisticas') cargarEstadisticas();
+  localStorage.setItem('prode_tab', tab);
   if(tab==='pronosticos' && currentUser) cargarEnVivo();
+  if(tab==='envivo') cargarEnVivoTab();
 }
 
 // ── CÓDIGO PRINCIPAL ──────────────────────────────────────────
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function(){
   const cachedRanking = cacheGet('ranking');
   const cachedFixture = cacheGet('fixture');
   if (cachedRanking) renderRankingData(cachedRanking);
-  if (cachedFixture) { fixtureData = cachedFixture; renderFixture(fixtureData); }
+  if (cachedFixture) { fixtureData = cachedFixture; renderFixtureConModo(fixtureData); }
 
   // Restaurar sesión guardada — instantáneo primero, verificar después
   const savedUser = localStorage.getItem('prode_user');
@@ -161,16 +161,20 @@ document.addEventListener('DOMContentLoaded', function(){
     actualizarHeroBtns();
   }
 
+  // Restaurar último tab visitado
+  const _authTabs = ['ranking','pronosticos','estadisticas'];
+  const _savedTab = localStorage.getItem('prode_tab') || 'fixture';
+  const _canRestore = !_authTabs.includes(_savedTab) || currentUser;
+  switchTab(_canRestore ? _savedTab : 'fixture');
+
   // Cargar todo en paralelo
   if (SCRIPT_URL) {
     Promise.all([
       apiGet('ranking'),
-      apiGet('fixture'),
-      apiGet('estadisticas')
-    ]).then(([rankData, fixData, statsData]) => {
+      apiGet('fixture')
+    ]).then(([rankData, fixData]) => {
       if ((rankData && rankData.ok))  { cacheSet('ranking', rankData);  renderRankingData(rankData); }
-      if ((fixData && fixData.ok))   { cacheSet('fixture', fixData);   fixtureData = fixData.partidos || []; renderFixture(fixtureData); if(currentUser) renderPron(); }
-      if ((statsData && statsData.ok)) { renderEstadisticasData(statsData); }
+      if ((fixData && fixData.ok))   { cacheSet('fixture', fixData);   fixtureData = fixData.partidos || []; renderFixtureConModo(fixtureData); if(currentUser) renderPron(); }
     });
   }
 
@@ -506,6 +510,75 @@ async function cargarEstadisticas(){
   renderEstadisticasData(data);
 }
 
+async function cargarEnVivoTab(){
+  const el = document.getElementById('envivo-tab-content');
+  if (!el) return;
+  el.innerHTML = `<div class="empty"><span class="empty-icon" style="display:inline-block;animation:pulse 1s infinite">📡</span>Cargando...</div>`;
+  const data = await apiGet('pronosticosEnJuego');
+  actualizarIndicadorEnVivo(data && data.ok && data.partidos.length > 0);
+  if (!(data && data.ok) || !data.partidos.length) {
+    el.innerHTML = `<div class="empty"><span class="empty-icon">📡</span>Sin partidos en vivo ahora</div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <span style="width:12px;height:12px;background:#e74c3c;border-radius:50%;animation:pulse 1s infinite;flex-shrink:0;display:inline-block;"></span>
+      <span style="font-size:20px;font-weight:900;letter-spacing:.12em;color:var(--accent)">EN VIVO</span>
+      <span style="font-size:11px;color:var(--muted);margin-left:auto;background:rgba(255,255,255,.06);padding:3px 8px;border-radius:20px;">↻ 30s</span>
+    </div>
+    ${data.partidos.map(p => renderPartidoEnVivoTab(p)).join('')}
+  `;
+}
+
+function renderPartidoEnVivoTab(p){
+  const prons = p.pronosticos;
+  const glActual = Number(p.gol_l), gvActual = Number(p.gol_v);
+  const filas = prons.map(pr => {
+    const gl = Number(pr.gol_l), gv = Number(pr.gol_v);
+    const exacto   = gl === glActual && gv === gvActual;
+    const signo    = gl > gv ? 'L' : gv > gl ? 'V' : 'E';
+    const signoAct = glActual > gvActual ? 'L' : gvActual > glActual ? 'V' : 'E';
+    const acierto  = signo === signoAct;
+    const badge = exacto
+      ? `<span style="background:#27ae60;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;">✓ Exacto</span>`
+      : acierto
+      ? `<span style="background:#f39c12;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;">~ 1X2</span>`
+      : `<span style="background:rgba(255,255,255,.07);color:var(--muted);border-radius:4px;padding:2px 7px;font-size:11px;">—</span>`;
+    return `<tr>
+      <td style="padding:7px 10px;font-size:13px;font-weight:500;">${pr.nombre}</td>
+      <td style="padding:7px 10px;text-align:center;font-weight:800;font-size:15px;color:var(--text);">${gl}–${gv}</td>
+      <td style="padding:7px 10px;text-align:right;">${badge}</td>
+    </tr>`;
+  }).join('');
+  return `
+    <div style="background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid rgba(231,76,60,.25);box-shadow:0 0 18px rgba(231,76,60,.08);">
+      <div style="text-align:center;margin-bottom:14px;">
+        <div style="font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">${p.jornada||''}</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
+          <span style="font-size:14px;font-weight:700;flex:1;text-align:right;">${p.local}</span>
+          <span style="font-size:28px;font-weight:900;color:var(--accent);background:rgba(184,247,60,.08);border-radius:10px;padding:4px 14px;min-width:72px;text-align:center;">${glActual}–${gvActual}</span>
+          <span style="font-size:14px;font-weight:700;flex:1;text-align:left;">${p.visitante}</span>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;border-top:1px solid rgba(255,255,255,.07);">
+        <thead>
+          <tr style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em;">
+            <th style="padding:5px 10px;text-align:left;font-weight:600;">Jugador</th>
+            <th style="padding:5px 10px;text-align:center;font-weight:600;">Pronóstico</th>
+            <th style="padding:5px 10px;"></th>
+          </tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>
+    </div>`;
+}
+
+function actualizarIndicadorEnVivo(hayVivo){
+  const btn = document.querySelector('.nav-tab[data-tab="envivo"]');
+  if (!btn) return;
+  btn.classList.toggle('has-live', hayVivo);
+}
+
 async function cargarEnVivo(){
   const el = document.getElementById('en-vivo-area');
   if (!el) return;
@@ -593,6 +666,8 @@ function agendarProximoPoll() {
       return;
     }
     await Promise.all([cargarRanking(), cargarFixture()]);
+    // Si el tab EN VIVO está activo, refrescarlo también
+    if (localStorage.getItem('prode_tab') === 'envivo') cargarEnVivoTab();
     agendarProximoPoll();
   }, delay);
 }
@@ -603,11 +678,17 @@ async function cargarFixture(){
   if (!(data && data.ok)) return;
   cacheSet('fixture', data);
   fixtureData = data.partidos || [];
-  renderFixture(fixtureData);
+  renderFixtureConModo(fixtureData);
   if (currentUser) renderPron();
 }
 
-let modoFixture = 'grupo';
+let modoFixture = 'jornada';
+
+function renderFixtureConModo(partidos) {
+  if (modoFixture === 'jornada') renderFixtureJornada(partidos);
+  else if (modoFixture === 'grupo') renderFixture(partidos);
+  // 'elim' se maneja aparte con cargarEliminatorias()
+}
 
 function setModoFixture(modo, btn) {
   modoFixture = modo;
@@ -717,6 +798,8 @@ function renderFixture(partidos){
   document.getElementById('s-jugados').textContent = jugados;
   const elRestantes = document.getElementById('s-restantes');
   if (elRestantes) elRestantes.textContent = Math.max(0, partidos.length - jugados);
+  // Indicador EN VIVO en el tab
+  actualizarIndicadorEnVivo(partidos.some(m => m.estado === 'EN JUEGO'));
   const RONDAS_LABELS_FIXTURE = {
     'OCTAVOS':'⚡ OCTAVOS DE FINAL',
     'CUARTOS':'🔥 CUARTOS DE FINAL',
