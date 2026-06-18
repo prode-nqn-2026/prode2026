@@ -383,7 +383,7 @@ function renderRankingData(data) {
       <div class="player-name">${p.nombre}${movHtml}${esNuevo?' <span class="badge b-green" style="font-size:9px;vertical-align:middle">NUEVO</span>':''}</div>
       <div class="cell"><span class="badge b-green">${p.exactos||0}</span></div>
       <div class="cell"><span class="badge b-gold">${p.aciertos_1x2||0}</span></div>
-      <div class="cell"><span class="badge b-gray">${p.pendientes||0}</span></div>
+      <div class="cell"><div style="text-align:center"><span class="badge b-gray">${p.errores||0}</span></div></div>
       <div class="pts">${esNuevo?'<span style="color:var(--muted);font-size:14px">—</span>':(p.puntos||0)}</div>
     </div>`;
   }).join('');

@@ -171,10 +171,10 @@ function crearHojaRanking(ss) {
   let h = ss.getSheetByName(H_RANKING);
   if (h) h.clear(); else h = ss.insertSheet(H_RANKING);
 
-  h.getRange(1,1,1,8).setValues([[
-    "POSICION","NOMBRE","PUNTOS","EXACTOS","ACIERTOS_1X2","PENDIENTES","RACHA","ULTIMA_ACT"
+  h.getRange(1,1,1,10).setValues([[
+    "POSICION","NOMBRE","PUNTOS","EXACTOS","ACIERTOS_1X2","PENDIENTES","RACHA","ULTIMA_ACT","FOTO_URL","ERRORES"
   ]]);
-  formatearEncabezado(h, 1, 8);
+  formatearEncabezado(h, 1, 10);
 }
 
 function formatearEncabezado(hoja, fila, cols) {
@@ -1035,7 +1035,7 @@ function recalcularRanking() {
   const scores = {}; // { nombreLower: { display, puntos, exactos, aciertos, pendientes } }
 
   participantes.forEach(function(p) {
-    scores[p.nombre.toLowerCase()] = { display: p.nombre, puntos:0, exactos:0, aciertos:0, pendientes:0 };
+    scores[p.nombre.toLowerCase()] = { display: p.nombre, puntos:0, exactos:0, aciertos:0, pendientes:0, errores:0 };
   });
 
   // Recorrer todos los pronósticos (ignorar duplicados nombre+partido)
@@ -1073,6 +1073,8 @@ function recalcularRanking() {
       if (pred_ganador === real_ganador) {
         scores[nombre].puntos   += PUNTOS_1X2;
         scores[nombre].aciertos++;
+      } else {
+        scores[nombre].errores++;
       }
     }
   }
@@ -1093,8 +1095,8 @@ function recalcularRanking() {
 
   // Escribir en hoja RANKING
   hRan.clearContents();
-  hRan.getRange(1,1,1,9).setValues([["POSICION","NOMBRE","PUNTOS","EXACTOS","ACIERTOS_1X2","PENDIENTES","RACHA","ULTIMA_ACT","FOTO_URL"]]);
-  formatearEncabezado(hRan, 1, 9);
+  hRan.getRange(1,1,1,10).setValues([["POSICION","NOMBRE","PUNTOS","EXACTOS","ACIERTOS_1X2","PENDIENTES","RACHA","ULTIMA_ACT","FOTO_URL","ERRORES"]]);
+  formatearEncabezado(hRan, 1, 10);
 
   const ahora = Utilities.formatDate(new Date(), "America/Argentina/Buenos_Aires", "dd/MM/yyyy HH:mm");
   // Obtener fotos de participantes
@@ -1111,10 +1113,10 @@ function recalcularRanking() {
     var movimiento = "—";
     if (posAnterior > posActual) movimiento = "↑" + (posAnterior - posActual);
     else if (posAnterior < posActual) movimiento = "↓" + (posActual - posAnterior);
-    return [posActual, r.nombre, r.puntos, r.exactos, r.aciertos, r.pendientes, movimiento, ahora, fotoMap[r.nombre]||""];
+    return [posActual, r.nombre, r.puntos, r.exactos, r.aciertos, r.pendientes, movimiento, ahora, fotoMap[r.nombre]||"", r.errores];
   });
 
-  if (filas.length > 0) hRan.getRange(2, 1, filas.length, 9).setValues(filas);
+  if (filas.length > 0) hRan.getRange(2, 1, filas.length, 10).setValues(filas);
   Logger.log("🏆 Ranking actualizado: " + filas.length + " participantes.");
 }
 
@@ -1154,7 +1156,8 @@ function getRanking() {
       pendientes:   rowsR[i][5] || 0,
       movimiento:   rowsR[i][6] || "=",
       ultima_act:   rowsR[i][7] || "",
-      foto_url:     rowsR[i][8] || ""
+      foto_url:     rowsR[i][8] || "",
+      errores:      rowsR[i][9] || 0
     });
   }
 
@@ -1172,7 +1175,8 @@ function getRanking() {
         aciertos_1x2: 0,
         pendientes:   104,
         ultima_act:   "",
-        foto_url:     rowsP[i][7] || ""
+        foto_url:     rowsP[i][7] || "",
+        errores:      0
       });
     }
   }
