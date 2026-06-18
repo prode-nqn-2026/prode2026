@@ -1591,7 +1591,7 @@ function _procesarCargaCore() {
   if (!hc) return { procesados: 0, errores: [] };
 
   const rows = hc.getDataRange().getValues();
-  let procesados = 0, errores = [], huboFinal = false;
+  let procesados = 0, errores = [];
 
   for (let i = 1; i < rows.length; i++) {
     const id      = rows[i][0];
@@ -1613,13 +1613,10 @@ function _procesarCargaCore() {
     if (r.ok) {
       hc.getRange(i + 1, 9).setValue(esFinal ? 'FT' : 'EN JUEGO');
       procesados++;
-      if (esFinal) huboFinal = true;
     } else {
       errores.push('Partido ' + id + ': ' + r.mensaje);
     }
   }
-
-  if (huboFinal) recalcularRanking();
 
   return { procesados, errores };
 }
