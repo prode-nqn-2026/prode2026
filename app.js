@@ -762,15 +762,31 @@ function renderFixtureJornada(partidos) {
     porFecha[fecha].push(m);
   });
 
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  let diaActualKey = null;
+
   let html = '';
   let cardIdx = 0;
-  Object.keys(porFecha).sort((a,b) => {
+  const fechasOrdenadas = Object.keys(porFecha).sort((a,b) => {
     // Ordenar por fecha dd/MM/yyyy
     const [da,ma,ya] = a.split('/'); const [db,mb,yb] = b.split('/');
     return new Date(ya,ma-1,da) - new Date(yb,mb-1,db);
-  }).forEach(fecha => {
+  });
+
+  fechasOrdenadas.forEach((fecha, idx) => {
     const ms = porFecha[fecha];
-    html += `<div class="group-hdr">${fecha}</div>`;
+    const [d,mo,y] = fecha.split('/');
+    const fechaDate = new Date(y,mo-1,d);
+    const esPasado  = fechaDate < hoy;
+    const esHoy     = fechaDate.getTime() === hoy.getTime();
+    if (esHoy && diaActualKey === null) diaActualKey = 'jdia-' + idx;
+    if (diaActualKey === null && fechaDate > hoy) diaActualKey = 'jdia-' + idx; // primer día futuro si no hay "hoy"
+
+    html += `<div class="group-hdr" id="jdia-${idx}" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleDiaJornada(${idx})">
+      <span>${fecha}${esHoy?' <span class="badge b-green" style="font-size:9px;vertical-align:middle">HOY</span>':''}</span>
+      <span id="jdia-arrow-${idx}" style="font-size:11px;color:var(--muted);transition:transform .2s">${esPasado?'▸':'▾'}</span>
+    </div>
+    <div id="jdia-body-${idx}" style="${esPasado?'display:none':''}">`;
     ms.forEach(m => {
       const jugado = estaJugado(m);
       const live   = m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
@@ -801,8 +817,23 @@ function renderFixtureJornada(partidos) {
         </div>
       </div>`;
     });
+    html += `</div>`;
   });
   document.getElementById('fixture-list').innerHTML = html;
+
+  if (diaActualKey) {
+    const el = document.getElementById(diaActualKey);
+    if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+}
+
+function toggleDiaJornada(idx) {
+  const body  = document.getElementById('jdia-body-' + idx);
+  const arrow = document.getElementById('jdia-arrow-' + idx);
+  if (!body) return;
+  const oculto = body.style.display === 'none';
+  body.style.display = oculto ? '' : 'none';
+  if (arrow) arrow.textContent = oculto ? '▾' : '▸';
 }
 
 function renderFixture(partidos){
