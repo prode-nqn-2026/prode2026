@@ -1,4 +1,17 @@
-const CACHE = 'prode2026-v42';
+importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyAsDIA9Y3W8HEmSjTaWI7cnTR4X5esE9rU",
+  authDomain: "prode2026-ecd26.firebaseapp.com",
+  projectId: "prode2026-ecd26",
+  storageBucket: "prode2026-ecd26.firebasestorage.app",
+  messagingSenderId: "748658807388",
+  appId: "1:748658807388:web:fcf7b6f69a3bf296118c99"
+});
+firebase.messaging(); // habilita la recepción de push en background automáticamente
+
+const CACHE = 'prode2026-v43';
 const ASSETS = [
   './',
   './index.html',

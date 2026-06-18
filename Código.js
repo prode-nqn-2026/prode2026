@@ -31,6 +31,11 @@ const H_FIXTURE        = "FIXTURE";
 const H_PRONOSTICOS    = "PRONÓSTICOS";
 const H_RESULTADOS     = "RESULTADOS";
 const H_RANKING        = "RANKING";
+const H_PUSH_TOKENS    = "PUSH_TOKENS";
+const H_PUSH_AVISOS    = "PUSH_AVISOS";
+
+// Firebase Cloud Messaging (recordatorios push)
+const FCM_PROJECT_ID = "prode2026-ecd26";
 
 // ── DOGET / DOPOST — Punto de entrada del panel HTML ─────────
 
@@ -87,6 +92,7 @@ function doPost(e) {
     if (accion === "resultado")          return jsonResponse(cargarResultadoManual(data));
     if (accion === "subirFoto")          return jsonResponse(subirFotoPerfil(data));
     if (accion === "editarPerfil")       return jsonResponse(editarPerfil(data));
+    if (accion === "guardarPushToken")   return jsonResponse(guardarPushToken(data));
 
     return jsonResponse({ ok: false, mensaje: "Acción desconocida" });
   } catch(err) {
@@ -812,6 +818,162 @@ function cargarResultadoManual(data) {
   return { ok: false, mensaje: "Partido no encontrado." };
 }
 
+// ── PUSH NOTIFICATIONS (Firebase Cloud Messaging) ─────────────
+
+// Ejecutar una sola vez manualmente para crear las hojas de soporte
+function crearHojasPush() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let hT = ss.getSheetByName(H_PUSH_TOKENS);
+  if (!hT) {
+    hT = ss.insertSheet(H_PUSH_TOKENS);
+    hT.getRange(1,1,1,3).setValues([["NOMBRE","TOKEN","FECHA"]]);
+    formatearEncabezado(hT, 1, 3);
+  }
+  let hA = ss.getSheetByName(H_PUSH_AVISOS);
+  if (!hA) {
+    hA = ss.insertSheet(H_PUSH_AVISOS);
+    hA.getRange(1,1,1,2).setValues([["PARTIDO_ID","FECHA_AVISO"]]);
+    formatearEncabezado(hA, 1, 2);
+  }
+  Logger.log("✅ Hojas PUSH_TOKENS y PUSH_AVISOS listas.");
+}
+
+function guardarPushToken(data) {
+  // data: { nombre, token }
+  try {
+    if (!data.token) return { ok: false, mensaje: "Falta token" };
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const h  = ss.getSheetByName(H_PUSH_TOKENS);
+    if (!h) return { ok: false, mensaje: "Hoja PUSH_TOKENS no existe. Ejecutá crearHojasPush()." };
+
+    const rows = h.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][1] === data.token) {
+        h.getRange(i+1, 1).setValue(data.nombre || rows[i][0]);
+        h.getRange(i+1, 3).setValue(new Date());
+        return { ok: true, mensaje: "Token actualizado" };
+      }
+    }
+    h.appendRow([data.nombre || "", data.token, new Date()]);
+    return { ok: true, mensaje: "Token guardado" };
+  } catch(e) {
+    return { ok: false, mensaje: e.message };
+  }
+}
+
+function getPushTokens_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const h  = ss.getSheetByName(H_PUSH_TOKENS);
+  if (!h) return [];
+  const rows = h.getDataRange().getValues();
+  const tokens = [];
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][1]) tokens.push(rows[i][1].toString());
+  }
+  return tokens;
+}
+
+function getAvisosEnviados_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const h  = ss.getSheetByName(H_PUSH_AVISOS);
+  const set = new Set();
+  if (!h) return set;
+  const rows = h.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0]) set.add(rows[i][0].toString());
+  }
+  return set;
+}
+
+function marcarAvisoEnviado_(partidoId) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const h  = ss.getSheetByName(H_PUSH_AVISOS);
+  if (!h) return;
+  h.appendRow([partidoId, new Date()]);
+}
+
+function getFcmAccessToken_() {
+  const cache  = CacheService.getScriptCache();
+  const cached = cache.get('fcm_access_token');
+  if (cached) return cached;
+
+  const props       = PropertiesService.getScriptProperties();
+  const clientEmail = props.getProperty('FCM_CLIENT_EMAIL');
+  const privateKey  = props.getProperty('FCM_PRIVATE_KEY');
+  if (!clientEmail || !privateKey) {
+    throw new Error('Faltan las Propiedades del script FCM_CLIENT_EMAIL / FCM_PRIVATE_KEY');
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const header = { alg: 'RS256', typ: 'JWT' };
+  const claim = {
+    iss:   clientEmail,
+    scope: 'https://www.googleapis.com/auth/firebase.messaging',
+    aud:   'https://oauth2.googleapis.com/token',
+    exp:   now + 3600,
+    iat:   now
+  };
+
+  function b64url(obj) {
+    return Utilities.base64EncodeWebSafe(JSON.stringify(obj)).replace(/=+$/, '');
+  }
+
+  const toSign        = b64url(header) + '.' + b64url(claim);
+  const signatureBytes = Utilities.computeRsaSha256Signature(toSign, privateKey);
+  const signature      = Utilities.base64EncodeWebSafe(signatureBytes).replace(/=+$/, '');
+  const jwt             = toSign + '.' + signature;
+
+  const resp = UrlFetchApp.fetch('https://oauth2.googleapis.com/token', {
+    method: 'post',
+    contentType: 'application/x-www-form-urlencoded',
+    payload: {
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion:  jwt
+    },
+    muteHttpExceptions: true
+  });
+
+  const json = JSON.parse(resp.getContentText());
+  if (!json.access_token) throw new Error('No se pudo obtener access_token FCM: ' + resp.getContentText());
+
+  cache.put('fcm_access_token', json.access_token, 3000); // ~50 min
+  return json.access_token;
+}
+
+function enviarPush(tokens, title, body) {
+  if (!tokens || !tokens.length) return;
+  let accessToken;
+  try {
+    accessToken = getFcmAccessToken_();
+  } catch(e) {
+    Logger.log('Error obteniendo access token FCM: ' + e.message);
+    return;
+  }
+
+  tokens.forEach(function(token) {
+    const message = {
+      message: {
+        token: token,
+        notification: { title: title, body: body },
+        webpush: { fcm_options: { link: 'https://prode-nqn-2026.github.io/prode2026/' } }
+      }
+    };
+    const resp = UrlFetchApp.fetch(
+      'https://fcm.googleapis.com/v1/projects/' + FCM_PROJECT_ID + '/messages:send',
+      {
+        method: 'post',
+        contentType: 'application/json',
+        headers: { Authorization: 'Bearer ' + accessToken },
+        payload: JSON.stringify(message),
+        muteHttpExceptions: true
+      }
+    );
+    if (resp.getResponseCode() !== 200) {
+      Logger.log('Push falló para un token: ' + resp.getContentText());
+    }
+  });
+}
+
 // Marca automáticamente los partidos que ya arrancaron como EN JUEGO con 0-0
 function marcarPartidosEnJuego() {
   const ss  = SpreadsheetApp.getActiveSpreadsheet();
@@ -821,6 +983,11 @@ function marcarPartidosEnJuego() {
 
   // Hora actual en Argentina como string comparable "yyyyMMddHHmm"
   const ahoraStr = Utilities.formatDate(ahora, "America/Argentina/Buenos_Aires", "yyyyMMddHHmm");
+
+  // Ventana de aviso: partidos que arrancan dentro de los próximos 60 min
+  const en60min = new Date(ahora.getTime() + 60 * 60 * 1000);
+  const avisoStr = Utilities.formatDate(en60min, "America/Argentina/Buenos_Aires", "yyyyMMddHHmm");
+  const avisosEnviados = getAvisosEnviados_();
 
   function partidoStr(fechaVal, horaVal) {
     try {
@@ -843,6 +1010,15 @@ function marcarPartidosEnJuego() {
     if (estadosIgnorar.includes(estado)) continue;
     const inicio = partidoStr(rows[i][3], rows[i][4]);
     if (!inicio) continue;
+
+    // Avisar por push una sola vez cuando falta ~1h para el partido
+    const pid = rows[i][0].toString();
+    if (ahoraStr < inicio && avisoStr >= inicio && !avisosEnviados.has(pid)) {
+      enviarPush(getPushTokens_(), '⚽ ¡Partido pronto!', rows[i][5] + ' vs ' + rows[i][6] + ' — ¡Cargá tu pronóstico!');
+      marcarAvisoEnviado_(pid);
+      avisosEnviados.add(pid);
+    }
+
     if (ahoraStr >= inicio) {
       hf.getRange(i+1, 8).setValue(0);
       hf.getRange(i+1, 9).setValue(0);

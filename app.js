@@ -62,6 +62,28 @@ function flag(pais, size=20) {
 const SCRIPT_URL_FIJA = 'https://script.google.com/macros/s/AKfycbwpCjcP7s8zRMAEMEfKxUVLTBn5B5gzBQ_IqFtB650mLxK_TBvfIo740I6NUUNMbGOs/exec';
 let SCRIPT_URL = SCRIPT_URL_FIJA !== 'TU_URL_ACA' ? SCRIPT_URL_FIJA : (localStorage.getItem('prode_url') || '');
 
+// ── FIREBASE CLOUD MESSAGING (push notifications) ──────────────
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAsDIA9Y3W8HEmSjTaWI7cnTR4X5esE9rU",
+  authDomain: "prode2026-ecd26.firebaseapp.com",
+  projectId: "prode2026-ecd26",
+  storageBucket: "prode2026-ecd26.firebasestorage.app",
+  messagingSenderId: "748658807388",
+  appId: "1:748658807388:web:fcf7b6f69a3bf296118c99"
+};
+const FCM_VAPID_KEY = "BMTosxulaNYshBY3RPclx0F1knAD68ugfZi7U6hZzeQj2zxoIl9Jh6vNA8_NFTvSczhsuidvDtDQjuu9vc3S2TY";
+let fcmMessaging = null;
+try {
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    fcmMessaging = firebase.messaging();
+    fcmMessaging.onMessage(payload => {
+      const n = payload.notification || {};
+      toast('🔔 ' + (n.title || '') + (n.body ? ': ' + n.body : ''));
+    });
+  }
+} catch(e) { console.warn('Firebase no disponible:', e); }
+
 const AVATARS = [
   {bg:'#0f2a05',fg:'#B8F73C'},{bg:'#05152a',fg:'#5B8FF9'},
   {bg:'#2a1505',fg:'#FFB060'},{bg:'#2a0505',fg:'#FF7070'},
@@ -172,9 +194,6 @@ document.addEventListener('DOMContentLoaded', function(){
   iniciarContador();
 
   agendarProximoPoll();
-  chequearRecordatorios();
-  // Chequear cada 30 minutos
-  setInterval(chequearRecordatorios, 30 * 60 * 1000);
 
   // Ocultar splash
   const splash = document.getElementById('splash');
@@ -1157,57 +1176,40 @@ function toggleRecordatorio(key, jornada, fechasHoras) {
     toast('🔕 Recordatorio desactivado');
     return;
   }
-  if (!('Notification' in window)) { toast('Tu navegador no soporta notificaciones 😕', true); return; }
+  if (!('Notification' in window) || !fcmMessaging) { toast('Tu navegador no soporta notificaciones 😕', true); return; }
   if (Notification.permission === 'denied') { abrirModal('notif-ayuda'); return; }
-  if (Notification.permission === 'granted') { guardarYActivar(key, jornada, fechasHoras); return; }
+  if (Notification.permission === 'granted') { guardarYActivar(key, jornada); return; }
   abrirModal('notif-permiso');
   document.getElementById('btn-pedir-notif').onclick = function() {
     cerrarModal('notif-permiso');
     Notification.requestPermission().then(perm => {
       if (perm !== 'granted') { abrirModal('notif-ayuda'); return; }
-      guardarYActivar(key, jornada, fechasHoras);
+      guardarYActivar(key, jornada);
     });
   };
 }
 
-function guardarYActivar(key, jornada, fechasHoras) {
-  const saved = JSON.parse(localStorage.getItem('prode_recordatorios') || '{}');
-  saved[key] = { jornada, fechas: fechasHoras };
-  localStorage.setItem('prode_recordatorios', JSON.stringify(saved));
-  actualizarCampana(key, true);
-  toast('🔔 Recordatorio activado para ' + jornada);
+async function guardarYActivar(key, jornada) {
+  try {
+    const reg = window.swRegistration || await navigator.serviceWorker.ready;
+    const token = await fcmMessaging.getToken({ vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: reg });
+    if (!token) { toast('No se pudo activar el recordatorio 😕', true); return; }
+    await apiPost({ accion: 'guardarPushToken', nombre: currentUser || 'anonimo', token });
+
+    const saved = JSON.parse(localStorage.getItem('prode_recordatorios') || '{}');
+    saved[key] = { jornada };
+    localStorage.setItem('prode_recordatorios', JSON.stringify(saved));
+    actualizarCampana(key, true);
+    toast('🔔 Recordatorio activado para ' + jornada);
+  } catch(e) {
+    console.error(e);
+    toast('No se pudo activar el recordatorio 😕', true);
+  }
 }
 
 function actualizarCampana(key, activo) {
   const btn = document.getElementById('rec-btn-' + key);
   if (btn) btn.textContent = activo ? '🔔' : '🔕';
-}
-
-function chequearRecordatorios() {
-  if (Notification.permission !== 'granted') return;
-  const saved = JSON.parse(localStorage.getItem('prode_recordatorios') || '{}');
-  const ahora = new Date();
-  Object.entries(saved).forEach(([key, data]) => {
-    (data.fechas || []).forEach(fh => {
-      try {
-        const [fecha, hora] = fh.split(' ');
-        const fp = getFechaPartido(fecha, hora);
-        if (!fp) return;
-        const diff = fp - ahora;
-        if (diff > 0 && diff <= 60 * 60 * 1000) {
-          const mins = Math.round(diff / 60000);
-          new Notification('⚽ Prode Neuquén 2026', {
-            body: `¡Faltan ${mins} minutos para ${data.jornada}! Cargá tus pronósticos.`,
-            icon: 'https://prode-nqn-2026.github.io/prode2026/preview.svg'
-          });
-        }
-      } catch(e) {}
-    });
-  });
-}
-
-function pedirRecordatorio(jornada, fechasHoras) {
-  toggleRecordatorio('legacy', jornada, fechasHoras);
 }
 
 
