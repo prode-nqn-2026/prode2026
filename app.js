@@ -718,7 +718,7 @@ function setModoFixture(modo, btn) {
   if (modo === 'grupo') {
     document.querySelectorAll('#filtros-grupo .filter-btn').forEach(b=>b.classList.remove('active'));
     document.querySelector('#filtros-grupo .filter-btn').classList.add('active');
-    renderFixture(fixtureData);
+    renderFixture(fixtureData, true);
   } else if (modo === 'jornada') {
     document.querySelectorAll('#filtros-jornada .filter-btn').forEach(b=>b.classList.remove('active'));
     document.querySelector('#filtros-jornada .filter-btn').classList.add('active');
@@ -739,7 +739,7 @@ function filtrar(grupo,btn){
   } else {
     lista = fixtureData.filter(p => p.grupo === grupo);
   }
-  renderFixture(lista);
+  renderFixture(lista, !grupo);
 }
 
 function filtrarJornada(jornada, btn) {
@@ -895,7 +895,7 @@ function renderTablaGrupo(grupo, partidosGrupo) {
   return html;
 }
 
-function renderFixture(partidos){
+function renderFixture(partidos, soloTablas=false){
   if(!(partidos && partidos.length)){
     document.getElementById('fixture-list').innerHTML='<div class="empty"><span class="empty-icon">📅</span>No hay partidos para mostrar</div>'; return;
   }
@@ -906,18 +906,20 @@ function renderFixture(partidos){
     'TERCER':'🥉 TERCER PUESTO',
     'FINAL':'🏆 GRAN FINAL'
   };
-  let html='', grupoAct='';
+  let html='', grupoAct='', esElimActual=false;
   partidos.forEach(m=>{
     if(m.grupo!==grupoAct){
       grupoAct=m.grupo;
       const esElim=RONDAS_LABELS_FIXTURE[grupoAct];
+      esElimActual=!!esElim;
       if(esElim){
         html+=`<div class="group-hdr" style="color:var(--green);font-size:14px">${esElim}</div>`;
       } else {
         html+=renderTablaGrupo(grupoAct, partidos.filter(p=>p.grupo===grupoAct));
-        html+=`<div class="group-hdr">GRUPO ${grupoAct} — PARTIDOS</div>`;
+        if(!soloTablas) html+=`<div class="group-hdr">GRUPO ${grupoAct} — PARTIDOS</div>`;
       }
     }
+    if(soloTablas && !esElimActual) return;
     const jugado = estaJugado(m);
     const live=m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
     const fl=flag(m.local,22), fv=flag(m.visitante,22);
