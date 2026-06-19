@@ -763,7 +763,6 @@ function renderFixtureJornada(partidos) {
   });
 
   const hoy = new Date(); hoy.setHours(0,0,0,0);
-  let diaActualKey = null;
 
   let html = '';
   let cardIdx = 0;
@@ -779,8 +778,6 @@ function renderFixtureJornada(partidos) {
     const fechaDate = new Date(y,mo-1,d);
     const esPasado  = fechaDate < hoy;
     const esHoy     = fechaDate.getTime() === hoy.getTime();
-    if (esHoy && diaActualKey === null) diaActualKey = 'jdia-' + idx;
-    if (diaActualKey === null && fechaDate > hoy) diaActualKey = 'jdia-' + idx; // primer día futuro si no hay "hoy"
 
     html += `<div class="group-hdr" id="jdia-${idx}" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleDiaJornada(${idx})">
       <span>${fecha}${esHoy?' <span class="badge b-green" style="font-size:9px;vertical-align:middle">HOY</span>':''}</span>
@@ -820,11 +817,6 @@ function renderFixtureJornada(partidos) {
     html += `</div>`;
   });
   document.getElementById('fixture-list').innerHTML = html;
-
-  if (diaActualKey) {
-    const el = document.getElementById(diaActualKey);
-    if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-  }
 }
 
 function toggleDiaJornada(idx) {
@@ -906,46 +898,53 @@ function renderFixture(partidos, soloTablas=false){
     'TERCER':'🥉 TERCER PUESTO',
     'FINAL':'🏆 GRAN FINAL'
   };
-  let html='', grupoAct='', esElimActual=false;
+  // Agrupar primero (el fixture puede no venir ordenado por grupo)
+  const porGrupo = {};
+  const ordenGrupos = [];
   partidos.forEach(m=>{
-    if(m.grupo!==grupoAct){
-      grupoAct=m.grupo;
-      const esElim=RONDAS_LABELS_FIXTURE[grupoAct];
-      esElimActual=!!esElim;
-      if(esElim){
-        html+=`<div class="group-hdr" style="color:var(--green);font-size:14px">${esElim}</div>`;
-      } else {
-        html+=renderTablaGrupo(grupoAct, partidos.filter(p=>p.grupo===grupoAct));
-        if(!soloTablas) html+=`<div class="group-hdr">GRUPO ${grupoAct} — PARTIDOS</div>`;
-      }
+    if(!porGrupo[m.grupo]){ porGrupo[m.grupo]=[]; ordenGrupos.push(m.grupo); }
+    porGrupo[m.grupo].push(m);
+  });
+
+  let html='';
+  ordenGrupos.forEach(grupoAct=>{
+    const ms = porGrupo[grupoAct];
+    const esElim = RONDAS_LABELS_FIXTURE[grupoAct];
+    if(esElim){
+      html+=`<div class="group-hdr" style="color:var(--green);font-size:14px">${esElim}</div>`;
+    } else {
+      html+=renderTablaGrupo(grupoAct, ms);
+      if(soloTablas) return;
+      html+=`<div class="group-hdr">GRUPO ${grupoAct} — PARTIDOS</div>`;
     }
-    if(soloTablas && !esElimActual) return;
-    const jugado = estaJugado(m);
-    const live=m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
-    const fl=flag(m.local,22), fv=flag(m.visitante,22);
-    html+=`<div class="match-card">
-      <div class="match-inner">
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:1">
-          <div style="font-size:14px;font-weight:600;text-align:right">${m.local}</div>
-          <div style="font-size:22px;flex-shrink:0">${fl}</div>
+    ms.forEach(m=>{
+      const jugado = estaJugado(m);
+      const live=m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
+      const fl=flag(m.local,22), fv=flag(m.visitante,22);
+      html+=`<div class="match-card">
+        <div class="match-inner">
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:1">
+            <div style="font-size:14px;font-weight:600;text-align:right">${m.local}</div>
+            <div style="font-size:22px;flex-shrink:0">${fl}</div>
+          </div>
+          <div class="match-center">
+            ${jugado||live
+              ? `<div class="score-row">
+                  <div class="score-pill">${m.gol_l != null ? m.gol_l : '—'}</div>
+                  <span class="score-sep">:</span>
+                  <div class="score-pill">${m.gol_v != null ? m.gol_v : '—'}</div>
+                 </div>
+                 ${live?'<span class="badge b-live" style="font-size:9px;margin-top:2px">EN VIVO</span>':'<span class="badge b-gray" style="font-size:9px;margin-top:2px">Final</span>'}`
+              : `<div class="match-date">${formatFecha(m.fecha)}</div>
+                 <div class="match-time">${formatHora(m.hora)} hs</div>`}
+          </div>
+          <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;flex:1">
+            <div style="font-size:22px;flex-shrink:0">${fv}</div>
+            <div style="font-size:14px;font-weight:600;text-align:left">${m.visitante}</div>
+          </div>
         </div>
-        <div class="match-center">
-          ${jugado||live
-            ? `<div class="score-row">
-                <div class="score-pill">${m.gol_l != null ? m.gol_l : '—'}</div>
-                <span class="score-sep">:</span>
-                <div class="score-pill">${m.gol_v != null ? m.gol_v : '—'}</div>
-               </div>
-               ${live?'<span class="badge b-live" style="font-size:9px;margin-top:2px">EN VIVO</span>':'<span class="badge b-gray" style="font-size:9px;margin-top:2px">Final</span>'}`
-            : `<div class="match-date">${formatFecha(m.fecha)}</div>
-               <div class="match-time">${formatHora(m.hora)} hs</div>`}
-        </div>
-        <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;flex:1">
-          <div style="font-size:22px;flex-shrink:0">${fv}</div>
-          <div style="font-size:14px;font-weight:600;text-align:left">${m.visitante}</div>
-        </div>
-      </div>
-    </div>`;
+      </div>`;
+    });
   });
   document.getElementById('fixture-list').innerHTML=html;
 }
