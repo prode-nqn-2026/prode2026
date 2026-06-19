@@ -33,7 +33,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').then(reg => {
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
         // Forzar chequeo de nueva versión cada vez que abre la app
         reg.update();
         window.swRegistration = reg;
@@ -231,7 +231,7 @@
 
   <!-- Filtros por grupo -->
   <div class="filter-bar" id="filtros-grupo" style="display:none">
-    <button class="filter-btn active" onclick="filtrar('',this)">Todos</button>
+    <button class="filter-btn active" onclick="filtrar('',this)">Tablas</button>
     <button class="filter-btn" onclick="filtrar('A',this)">Grupo A</button>
     <button class="filter-btn" onclick="filtrar('B',this)">Grupo B</button>
     <button class="filter-btn" onclick="filtrar('C',this)">Grupo C</button>

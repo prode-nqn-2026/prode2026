@@ -911,6 +911,7 @@ function renderFixture(partidos, soloTablas=false){
     const ms = porGrupo[grupoAct];
     const esElim = RONDAS_LABELS_FIXTURE[grupoAct];
     if(esElim){
+      if(soloTablas) return; // las eliminatorias se ven en su propia sección
       html+=`<div class="group-hdr" style="color:var(--green);font-size:14px">${esElim}</div>`;
     } else {
       html+=renderTablaGrupo(grupoAct, ms);
