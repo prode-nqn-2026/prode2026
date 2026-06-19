@@ -836,6 +836,65 @@ function toggleDiaJornada(idx) {
   if (arrow) arrow.textContent = oculto ? '▾' : '▸';
 }
 
+function calcularTablaGrupo(partidosGrupo) {
+  const stats = {};
+  function ensure(team) {
+    if (!stats[team]) stats[team] = { equipo: team, pts: 0, j: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0 };
+    return stats[team];
+  }
+  partidosGrupo.forEach(m => {
+    ensure(m.local); ensure(m.visitante);
+    if (!estaJugado(m) || m.gol_l == null || m.gol_v == null) return;
+    const L = stats[m.local], V = stats[m.visitante];
+    const gl = m.gol_l, gv = m.gol_v;
+    L.j++; V.j++; L.gf += gl; L.gc += gv; V.gf += gv; V.gc += gl;
+    if (gl > gv)      { L.g++; L.pts += 3; V.p++; }
+    else if (gl < gv) { V.g++; V.pts += 3; L.p++; }
+    else              { L.e++; V.e++; L.pts++; V.pts++; }
+  });
+  return Object.values(stats).sort((a,b) => {
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    const dgA = a.gf - a.gc, dgB = b.gf - b.gc;
+    if (dgB !== dgA) return dgB - dgA;
+    return b.gf - a.gf;
+  });
+}
+
+function renderTablaGrupo(grupo, partidosGrupo) {
+  const tabla  = calcularTablaGrupo(partidosGrupo);
+  const enVivo = partidosGrupo.some(m => ['1H','2H','HT','EN JUEGO'].includes(m.estado));
+  let html = `<div class="grupo-tabla-wrap">
+    <div class="grupo-tabla-titlebar">
+      <span>GRUPO ${grupo}</span>
+      ${enVivo ? '<span class="badge b-live" style="font-size:9px">🔴 VIVO</span>' : ''}
+    </div>
+    <div class="grupo-tabla-head">
+      <div>#</div><div>Equipos</div><div>PTS</div><div>J</div><div>Gol</div><div>+/-</div><div>G</div><div>E</div><div>P</div>
+    </div>`;
+  tabla.forEach((t, i) => {
+    const pos = i + 1;
+    const dot = pos <= 2 ? '<span class="dot dot-green"></span>' : pos === 3 ? '<span class="dot dot-blue"></span>' : '';
+    const dif = t.gf - t.gc;
+    html += `<div class="grupo-tabla-row${pos===1?' p1':''}">
+      <div class="gt-pos">${pos}</div>
+      <div class="gt-equipo">${dot}${flag(t.equipo,18)}<span>${t.equipo}</span></div>
+      <div class="gt-pts">${t.pts}</div>
+      <div>${t.j}</div>
+      <div>${t.gf}:${t.gc}</div>
+      <div>${dif>0?'+':''}${dif}</div>
+      <div>${t.g}</div>
+      <div>${t.e}</div>
+      <div>${t.p}</div>
+    </div>`;
+  });
+  html += `</div>
+    <div class="grupo-tabla-legend">
+      <span><span class="dot dot-green"></span> 16avos de final</span>
+      <span><span class="dot dot-blue"></span> Posible clasificación</span>
+    </div>`;
+  return html;
+}
+
 function renderFixture(partidos){
   if(!(partidos && partidos.length)){
     document.getElementById('fixture-list').innerHTML='<div class="empty"><span class="empty-icon">📅</span>No hay partidos para mostrar</div>'; return;
@@ -855,7 +914,8 @@ function renderFixture(partidos){
       if(esElim){
         html+=`<div class="group-hdr" style="color:var(--green);font-size:14px">${esElim}</div>`;
       } else {
-        html+=`<div class="group-hdr">GRUPO ${grupoAct}</div>`;
+        html+=renderTablaGrupo(grupoAct, partidos.filter(p=>p.grupo===grupoAct));
+        html+=`<div class="group-hdr">GRUPO ${grupoAct} — PARTIDOS</div>`;
       }
     }
     const jugado = estaJugado(m);

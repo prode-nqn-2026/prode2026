@@ -236,6 +236,34 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-heigh
 .b-live{background:var(--red);color:#fff;animation:blink 1s ease infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
 
+/* TABLA DE GRUPO */
+.grupo-tabla-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
+.grupo-tabla-titlebar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:10px 14px;font-family:var(--font-d);font-size:15px;letter-spacing:.5px;
+  background:rgba(184,247,60,0.06);border-bottom:1px solid var(--border);
+}
+.grupo-tabla-head,.grupo-tabla-row{
+  display:grid;grid-template-columns:22px 1fr 32px 26px 44px 30px 22px 22px 22px;
+  gap:4px;align-items:center;padding:7px 10px;
+}
+.grupo-tabla-head{
+  font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;
+  text-align:center;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);
+}
+.grupo-tabla-head div:nth-child(2){text-align:left}
+.grupo-tabla-row{font-size:12px;text-align:center;border-bottom:1px solid var(--border)}
+.grupo-tabla-row:last-child{border-bottom:none}
+.grupo-tabla-row.p1{background:rgba(184,247,60,0.05)}
+.gt-pos{font-weight:700;color:var(--muted)}
+.gt-equipo{display:flex;align-items:center;gap:5px;text-align:left;font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gt-pts{font-weight:700;color:var(--green)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}
+.dot-green{background:var(--green)}
+.dot-blue{background:var(--blue)}
+.grupo-tabla-legend{display:flex;gap:14px;font-size:10px;color:var(--muted);padding:0 4px 14px;align-items:center}
+.grupo-tabla-legend span{display:flex;align-items:center;gap:5px}
+
 /* FIXTURE */
 .filter-bar{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .filter-bar::-webkit-scrollbar{display:none}
@@ -476,6 +504,8 @@ footer{
   .match-team-name{font-size:12px}
   .match-flag{font-size:18px}
   .pron-head,.pron-row{grid-template-columns:1fr 34px 10px 34px 1fr 68px;gap:4px;padding:9px 10px}
+  .grupo-tabla-head,.grupo-tabla-row{grid-template-columns:18px 1fr 26px 22px 38px 26px 18px 18px 18px;gap:3px;padding:6px 8px;font-size:11px}
+  .gt-equipo{font-size:11px}
 }
 
 
