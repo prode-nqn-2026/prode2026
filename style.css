@@ -236,6 +236,25 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--white);min-heigh
 .b-live{background:var(--red);color:#fff;animation:blink 1s ease infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
 
+/* COUNTDOWN EN VIVO */
+.live-countdown{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;color:var(--red);
+  background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.25);
+  padding:4px 10px;border-radius:20px;white-space:nowrap;
+}
+.live-countdown b{color:var(--red);font-weight:800}
+.lc-ring{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+  background:var(--red);box-shadow:0 0 0 0 rgba(231,76,60,0.5);
+  animation:lc-pulse 1.2s ease infinite;
+}
+@keyframes lc-pulse{
+  0%{box-shadow:0 0 0 0 rgba(231,76,60,0.5)}
+  70%{box-shadow:0 0 0 6px rgba(231,76,60,0)}
+  100%{box-shadow:0 0 0 0 rgba(231,76,60,0)}
+}
+
 /* TABLA DE GRUPO */
 .grupo-tabla-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
 .grupo-tabla-titlebar{
