@@ -531,7 +531,7 @@ async function cargarEnVivoTab(silencioso=false){
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
       <span style="width:12px;height:12px;background:#e74c3c;border-radius:50%;animation:pulse 1s infinite;flex-shrink:0;display:inline-block;"></span>
       <span style="font-size:20px;font-weight:900;letter-spacing:.12em;color:var(--accent)">EN VIVO</span>
-      <span style="font-size:11px;color:var(--muted);margin-left:auto;background:rgba(255,255,255,.06);padding:3px 8px;border-radius:20px;">↻ 30s</span>
+      <span id="envivo-countdown" style="font-size:11px;color:var(--muted);margin-left:auto;background:rgba(255,255,255,.06);padding:3px 8px;border-radius:20px;">↻ 30s</span>
     </div>
     ${data.partidos.map(p => renderPartidoEnVivoTab(p)).join('')}
   `;
@@ -663,10 +663,12 @@ async function cargarRanking(){
 
 // Polling inteligente: 30 seg si hay EN JUEGO, 5 min si no
 let _pollTimer = null;
+let _pollDeadline = 0;
 function agendarProximoPoll() {
   if (_pollTimer) clearTimeout(_pollTimer);
   const hayEnJuego = fixtureData.some(m => m.estado === 'EN JUEGO');
   const delay = hayEnJuego ? 30 * 1000 : 5 * 60 * 1000;
+  _pollDeadline = Date.now() + delay;
   _pollTimer = setTimeout(async () => {
     if (!SCRIPT_URL || document.visibilityState === 'hidden') {
       agendarProximoPoll();
@@ -678,6 +680,13 @@ function agendarProximoPoll() {
     agendarProximoPoll();
   }, delay);
 }
+
+setInterval(() => {
+  const el = document.getElementById('envivo-countdown');
+  if (!el || !_pollDeadline) return;
+  const rem = Math.max(0, Math.round((_pollDeadline - Date.now()) / 1000));
+  el.textContent = '↻ ' + (rem >= 60 ? Math.ceil(rem/60) + 'min' : rem + 's');
+}, 1000);
 
 // ── FIXTURE ───────────────────────────────────────────────────
 async function cargarFixture(){
