@@ -517,10 +517,10 @@ async function cargarEstadisticas(){
   renderEstadisticasData(data);
 }
 
-async function cargarEnVivoTab(){
+async function cargarEnVivoTab(silencioso=false){
   const el = document.getElementById('envivo-tab-content');
   if (!el) return;
-  el.innerHTML = `<div class="empty"><span class="empty-icon" style="display:inline-block;animation:pulse 1s infinite">📡</span>Cargando...</div>`;
+  if (!silencioso) el.innerHTML = `<div class="empty"><span class="empty-icon" style="display:inline-block;animation:pulse 1s infinite">📡</span>Cargando...</div>`;
   const data = await apiGet('pronosticosEnJuego');
   actualizarIndicadorEnVivo(data && data.ok && data.partidos.length > 0);
   if (!(data && data.ok) || !data.partidos.length) {
@@ -673,8 +673,8 @@ function agendarProximoPoll() {
       return;
     }
     await Promise.all([cargarRanking(), cargarFixture()]);
-    // Si el tab EN VIVO está activo, refrescarlo también
-    if (localStorage.getItem('prode_tab') === 'envivo') cargarEnVivoTab();
+    // Si el tab EN VIVO está activo, refrescarlo también (en silencio, sin pantalla de carga)
+    if (localStorage.getItem('prode_tab') === 'envivo') cargarEnVivoTab(true);
     agendarProximoPoll();
   }, delay);
 }
