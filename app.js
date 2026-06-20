@@ -702,8 +702,23 @@ function renderFixtureConModo(partidos) {
   actualizarIndicadorEnVivo(todos.some(m => m.estado === 'EN JUEGO'));
 
   if (modoFixture === 'jornada') renderFixtureJornada(partidos);
-  else if (modoFixture === 'grupo') renderFixture(partidos);
+  else if (modoFixture === 'grupo') aplicarFiltroGrupo();
   // 'elim' se maneja aparte con cargarEliminatorias()
+}
+
+let filtroGrupoActual = '';
+
+function aplicarFiltroGrupo() {
+  const grupo = filtroGrupoActual;
+  let lista;
+  if (!grupo) {
+    lista = fixtureData;
+  } else if (grupo === 'ELIM') {
+    lista = fixtureData.filter(p => ['OCTAVOS','CUARTOS','SEMIS','TERCER','FINAL'].includes(p.grupo));
+  } else {
+    lista = fixtureData.filter(p => p.grupo === grupo);
+  }
+  renderFixture(lista, !grupo);
 }
 
 function setModoFixture(modo, btn) {
@@ -718,7 +733,8 @@ function setModoFixture(modo, btn) {
   if (modo === 'grupo') {
     document.querySelectorAll('#filtros-grupo .filter-btn').forEach(b=>b.classList.remove('active'));
     document.querySelector('#filtros-grupo .filter-btn').classList.add('active');
-    renderFixture(fixtureData, true);
+    filtroGrupoActual = '';
+    aplicarFiltroGrupo();
   } else if (modo === 'jornada') {
     document.querySelectorAll('#filtros-jornada .filter-btn').forEach(b=>b.classList.remove('active'));
     document.querySelector('#filtros-jornada .filter-btn').classList.add('active');
@@ -731,15 +747,8 @@ function setModoFixture(modo, btn) {
 function filtrar(grupo,btn){
   document.querySelectorAll('#filtros-grupo .filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  let lista;
-  if (!grupo) {
-    lista = fixtureData;
-  } else if (grupo === 'ELIM') {
-    lista = fixtureData.filter(p => ['OCTAVOS','CUARTOS','SEMIS','TERCER','FINAL'].includes(p.grupo));
-  } else {
-    lista = fixtureData.filter(p => p.grupo === grupo);
-  }
-  renderFixture(lista, !grupo);
+  filtroGrupoActual = grupo;
+  aplicarFiltroGrupo();
 }
 
 function filtrarJornada(jornada, btn) {
