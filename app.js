@@ -434,6 +434,7 @@ function renderEstadisticasData(data) {
 
 // ── ELIMINATORIAS ────────────────────────────────────────────
 const RONDAS_ELIM = {
+  'DIECISEISAVOS': { label:'🏁 Dieciseisavos de Final', color:'rgba(91,143,249,0.12)', border:'rgba(91,143,249,0.3)' },
   'OCTAVOS': { label:'⚡ Octavos de Final',    color:'rgba(184,247,60,0.15)',  border:'rgba(184,247,60,0.3)'  },
   'CUARTOS': { label:'🔥 Cuartos de Final',    color:'rgba(255,160,50,0.1)',   border:'rgba(255,160,50,0.3)'  },
   'SEMIS':   { label:'💥 Semifinales',         color:'rgba(255,85,85,0.1)',    border:'rgba(255,85,85,0.3)'   },
@@ -471,42 +472,48 @@ function renderEliminatorias(partidos) {
     return;
   }
 
-  let html = '', rondaAct = '';
+  // Agrupar primero por ronda (no asumir que vienen ordenadas)
+  const porRonda = {};
+  const ordenRondas = [];
   partidos.forEach(m => {
-    if (m.grupo !== rondaAct) {
-      rondaAct = m.grupo;
-      const ronda = RONDAS_ELIM[rondaAct] || { label: rondaAct, color:'transparent', border:'var(--border)' };
-      html += `<div style="font-family:var(--font-d);font-size:16px;letter-spacing:.5px;padding:16px 0 8px;color:var(--white)">${ronda.label}</div>`;
-    }
+    if (!porRonda[m.grupo]) { porRonda[m.grupo] = []; ordenRondas.push(m.grupo); }
+    porRonda[m.grupo].push(m);
+  });
 
-    const jugado = estaJugado(m);
-    const live   = m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
-    const ronda  = RONDAS_ELIM[m.grupo] || { color:'transparent', border:'var(--border)' };
-    const fl     = flag(m.local, 22), fv = flag(m.visitante, 22);
+  let html = '';
+  ordenRondas.forEach(rondaAct => {
+    const ronda = RONDAS_ELIM[rondaAct] || { label: rondaAct, color:'transparent', border:'var(--border)' };
+    html += `<div style="font-family:var(--font-d);font-size:16px;letter-spacing:.5px;padding:16px 0 8px;color:var(--white)">${ronda.label}</div>`;
 
-    html += `<div style="background:${ronda.color};border:1px solid ${ronda.border};border-radius:var(--r);padding:0;margin-bottom:8px;overflow:hidden;">
-      <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:14px 16px;">
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">
-          <div style="font-size:14px;font-weight:600;text-align:right">${m.local}</div>
-          <div style="flex-shrink:0">${fl}</div>
+    porRonda[rondaAct].forEach(m => {
+      const jugado = estaJugado(m);
+      const live   = m.estado==='1H'||m.estado==='2H'||m.estado==='HT';
+      const fl     = flag(m.local, 22), fv = flag(m.visitante, 22);
+
+      html += `<div style="background:${ronda.color};border:1px solid ${ronda.border};border-radius:var(--r);padding:0;margin-bottom:8px;overflow:hidden;">
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:14px 16px;">
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">
+            <div style="font-size:14px;font-weight:600;text-align:right">${m.local}</div>
+            <div style="flex-shrink:0">${fl}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:90px;">
+            ${jugado||live
+              ? `<div style="display:flex;align-items:center;gap:6px;">
+                  <div style="width:32px;height:32px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px">${m.gol_l != null ? m.gol_l : '—'}</div>
+                  <span style="color:var(--muted);font-size:13px">:</span>
+                  <div style="width:32px;height:32px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px">${m.gol_v != null ? m.gol_v : '—'}</div>
+                 </div>
+                 ${live?'<span class="badge b-live" style="font-size:9px">EN VIVO</span>':'<span class="badge b-gray" style="font-size:9px">Final</span>'}`
+              : `<div style="font-size:12px;font-weight:500;color:var(--white)">${formatFecha(m.fecha)}</div>
+                 <div style="font-size:11px;color:var(--muted)">${formatHora(m.hora)} hs</div>`}
+          </div>
+          <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;">
+            <div style="flex-shrink:0">${fv}</div>
+            <div style="font-size:14px;font-weight:600;text-align:left">${m.visitante}</div>
+          </div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:90px;">
-          ${jugado||live
-            ? `<div style="display:flex;align-items:center;gap:6px;">
-                <div style="width:32px;height:32px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px">${m.gol_l != null ? m.gol_l : '—'}</div>
-                <span style="color:var(--muted);font-size:13px">:</span>
-                <div style="width:32px;height:32px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px">${m.gol_v != null ? m.gol_v : '—'}</div>
-               </div>
-               ${live?'<span class="badge b-live" style="font-size:9px">EN VIVO</span>':'<span class="badge b-gray" style="font-size:9px">Final</span>'}`
-            : `<div style="font-size:12px;font-weight:500;color:var(--white)">${formatFecha(m.fecha)}</div>
-               <div style="font-size:11px;color:var(--muted)">${formatHora(m.hora)} hs</div>`}
-        </div>
-        <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;">
-          <div style="flex-shrink:0">${fv}</div>
-          <div style="font-size:14px;font-weight:600;text-align:left">${m.visitante}</div>
-        </div>
-      </div>
-    </div>`;
+      </div>`;
+    });
   });
 
   document.getElementById('eliminatorias-list').innerHTML = html;
@@ -742,7 +749,7 @@ function aplicarFiltroGrupo() {
   if (!grupo) {
     lista = fixtureData;
   } else if (grupo === 'ELIM') {
-    lista = fixtureData.filter(p => ['OCTAVOS','CUARTOS','SEMIS','TERCER','FINAL'].includes(p.grupo));
+    lista = fixtureData.filter(p => ['DIECISEISAVOS','OCTAVOS','CUARTOS','SEMIS','TERCER','FINAL'].includes(p.grupo));
   } else {
     lista = fixtureData.filter(p => p.grupo === grupo);
   }
@@ -929,6 +936,7 @@ function renderFixture(partidos, soloTablas=false){
     document.getElementById('fixture-list').innerHTML='<div class="empty"><span class="empty-icon">📅</span>No hay partidos para mostrar</div>'; return;
   }
   const RONDAS_LABELS_FIXTURE = {
+    'DIECISEISAVOS':'🏁 DIECISEISAVOS DE FINAL',
     'OCTAVOS':'⚡ OCTAVOS DE FINAL',
     'CUARTOS':'🔥 CUARTOS DE FINAL',
     'SEMIS':'💥 SEMIFINALES',
@@ -1084,6 +1092,7 @@ function renderPron(){
   // Agrupar por DÍA (como el fixture por jornada)
   const grupos = {};
   const RONDAS_NOMBRES = {
+    'DIECISEISAVOS':'🏁 Dieciseisavos de Final',
     'OCTAVOS':'⚡ Octavos de Final',
     'CUARTOS':'🔥 Cuartos de Final',
     'SEMIS':'💥 Semifinales',
