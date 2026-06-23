@@ -28,7 +28,6 @@ function switchTab(tab){
     view.style.animation='';
   }
   localStorage.setItem('prode_tab', tab);
-  if(tab==='pronosticos' && currentUser) cargarEnVivo();
   if(tab==='envivo') { if (typeof iniciarEnVivoLoop === 'function') iniciarEnVivoLoop(); }
   else if (typeof detenerEnVivoLoop === 'function') detenerEnVivoLoop();
 }
