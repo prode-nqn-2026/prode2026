@@ -11,7 +11,7 @@ firebase.initializeApp({
 });
 firebase.messaging(); // habilita la recepción de push en background automáticamente
 
-const CACHE = 'prode2026-v54';
+const CACHE = 'prode2026-v55';
 const ASSETS = [
   './',
   './index.html',

@@ -1102,7 +1102,10 @@ function renderPron(){
 
   fixtureData.forEach(m => {
     let key, titulo;
-    if (RONDAS_NOMBRES[m.grupo]) {
+    if (estaJugado(m)) {
+      key    = 'TERMINADOS';
+      titulo = '✅ Partidos Terminados';
+    } else if (RONDAS_NOMBRES[m.grupo]) {
       key    = 'ELIM_' + m.grupo;
       titulo = RONDAS_NOMBRES[m.grupo];
     } else {
@@ -1117,7 +1120,10 @@ function renderPron(){
 
   // Ordenar grupos por fecha
   const gruposOrdenados = Object.values(grupos).sort((a, b) => {
-    // Eliminatorias van al final
+    // Terminados siempre al final de todo
+    if (a.key === 'TERMINADOS') return 1;
+    if (b.key === 'TERMINADOS') return -1;
+    // Eliminatorias van antes de terminados pero después de los días
     if (a.key.startsWith('ELIM_') && !b.key.startsWith('ELIM_')) return 1;
     if (!a.key.startsWith('ELIM_') && b.key.startsWith('ELIM_')) return -1;
     if (a.key.startsWith('ELIM_') && b.key.startsWith('ELIM_')) return 0;
@@ -1236,14 +1242,17 @@ function renderPron(){
           <span style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${localAbrev}</span>
         </div>
         <!-- MARCADOR -->
-        <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
-          <input class="score-in" type="number" min="0" max="20" value="${p.gl}" placeholder="?" ${jugado||bloqueado?'disabled':''}
-            oninput="setPron(${m.id},'gl',this.value)" onchange="setPron(${m.id},'gl',this.value)"
-            style="width:32px;height:32px;font-size:14px;${bloqueado?'opacity:.45;cursor:not-allowed':''}"/>
-          <span style="color:var(--muted);font-size:12px">${bloqueado?'🔒':':'}</span>
-          <input class="score-in" type="number" min="0" max="20" value="${p.gv}" placeholder="?" ${jugado||bloqueado?'disabled':''}
-            oninput="setPron(${m.id},'gv',this.value)" onchange="setPron(${m.id},'gv',this.value)"
-            style="width:32px;height:32px;font-size:14px;${bloqueado?'opacity:.45;cursor:not-allowed':''}"/>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
+            <input class="score-in" type="number" min="0" max="20" value="${p.gl}" placeholder="?" ${jugado||bloqueado?'disabled':''}
+              oninput="setPron(${m.id},'gl',this.value)" onchange="setPron(${m.id},'gl',this.value)"
+              style="width:32px;height:32px;font-size:14px;${bloqueado?'opacity:.45;cursor:not-allowed':''}"/>
+            <span style="color:var(--muted);font-size:12px">${bloqueado?'🔒':':'}</span>
+            <input class="score-in" type="number" min="0" max="20" value="${p.gv}" placeholder="?" ${jugado||bloqueado?'disabled':''}
+              oninput="setPron(${m.id},'gv',this.value)" onchange="setPron(${m.id},'gv',this.value)"
+              style="width:32px;height:32px;font-size:14px;${bloqueado?'opacity:.45;cursor:not-allowed':''}"/>
+          </div>
+          ${!jugado ? `<div style="font-size:9px;color:var(--muted)">${formatHora(m.hora)} hs</div>` : ''}
         </div>
         <!-- VISITANTE -->
         <div style="display:flex;align-items:center;gap:5px;min-width:0;">
