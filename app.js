@@ -1244,11 +1244,11 @@ function renderPron(){
         <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
           <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
             <input class="score-in" type="number" min="0" max="20" value="${p.gl}" placeholder="?" ${jugado||bloqueado?'disabled':''}
-              oninput="setPron(${m.id},'gl',this.value)" onchange="setPron(${m.id},'gl',this.value)"
+              oninput="setPron(${m.id},'gl',this.value)" onchange="confirmPron(${m.id},'gl',this)"
               style="width:32px;height:32px;font-size:14px;${bloqueado?'opacity:.45;cursor:not-allowed':''}"/>
             <span style="color:var(--muted);font-size:12px">${bloqueado?'🔒':':'}</span>
             <input class="score-in" type="number" min="0" max="20" value="${p.gv}" placeholder="?" ${jugado||bloqueado?'disabled':''}
-              oninput="setPron(${m.id},'gv',this.value)" onchange="setPron(${m.id},'gv',this.value)"
+              oninput="setPron(${m.id},'gv',this.value)" onchange="confirmPron(${m.id},'gv',this)"
               style="width:32px;height:32px;font-size:14px;${bloqueado?'opacity:.45;cursor:not-allowed':''}"/>
           </div>
           ${!jugado ? `<div style="font-size:9px;color:var(--muted)">${formatHora(m.hora)} hs</div>` : ''}
@@ -1441,6 +1441,20 @@ function actualizarResumenPron(){
 }
 
 let _autoSaveTimer = null;
+function confirmPron(id,campo,input){
+  const val = input.value;
+  // Si pusieron 2 o más dígitos (10 o más), pedir confirmación
+  if(val !== '' && Number(val) >= 10){
+    const ok = confirm(`¿Estás seguro que querés poner ${val} goles? Parece un número muy alto.`);
+    if(!ok){
+      input.value = '';
+      setPron(id,campo,'');
+      input.focus();
+      return;
+    }
+  }
+  setPron(id,campo,val);
+}
 function setPron(id,campo,val){
   if(!pronLocales[id]) pronLocales[id]={gl:'',gv:''};
   pronLocales[id][campo]=val;
