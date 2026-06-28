@@ -1376,11 +1376,18 @@ function abreviar(nombre) {
   return abrev[nombre] || nombre;
 }
 
+// Rondas de eliminatoria: los equipos/horarios son provisorios hasta que se definen,
+// por eso NO se auto-bloquean ni se marcan como jugados por la hora; solo con resultado real.
+const RONDAS_ELIM_KEYS = ['DIECISEISAVOS','OCTAVOS','CUARTOS','SEMIS','TERCER','FINAL'];
+function esRondaElim(m) { return RONDAS_ELIM_KEYS.includes(m.grupo); }
+
 function estaJugado(m) {
   // EN JUEGO = bloqueado pero no terminado, no cuenta como jugado
   if (m.estado === 'EN JUEGO') return false;
   if (m.estado === 'FT' || m.estado === '1H' || m.estado === '2H' || m.estado === 'HT' || m.estado === 'ET' || m.estado === 'P') return true;
   if (m.gol_l !== '' && m.gol_l !== undefined && m.gol_l !== null) return true;
+  // Eliminatorias: sin resultado real → siempre abierto (no se cierra por la hora del placeholder)
+  if (esRondaElim(m)) return false;
   if (!m.fecha || !m.hora) return false;
   try {
     const [dia, mes, anio] = m.fecha.split('/');
@@ -1394,6 +1401,8 @@ function estaJugado(m) {
 function estaBloqueado(m) {
   if (estaJugado(m)) return false; // ya jugado se maneja aparte
   if (m.estado === 'EN JUEGO') return true;
+  // Eliminatorias: no bloquear por la hora provisoria, solo si está EN JUEGO real
+  if (esRondaElim(m)) return false;
   if (!m.fecha || !m.hora) return false;
   try {
     const [dia, mes, anio] = m.fecha.split('/');
