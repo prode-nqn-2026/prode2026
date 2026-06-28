@@ -1401,8 +1401,6 @@ function estaJugado(m) {
 function estaBloqueado(m) {
   if (estaJugado(m)) return false; // ya jugado se maneja aparte
   if (m.estado === 'EN JUEGO') return true;
-  // Eliminatorias: no bloquear por la hora provisoria, solo si está EN JUEGO real
-  if (esRondaElim(m)) return false;
   if (!m.fecha || !m.hora) return false;
   try {
     const [dia, mes, anio] = m.fecha.split('/');
